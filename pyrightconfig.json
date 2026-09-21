@@ -1,11 +1,26 @@
 {
-  "include": ["backend/src", "backend/tests", "scripts"],
+  "include": [
+    "backend/src",
+    "backend/tests",
+    "scripts"
+  ],
+  "exclude": [
+    "scripts/laya_compat/probe.py",
+    "**/node_modules",
+    "**/.venv"
+  ],
   "venvPath": ".",
   "venv": ".venv",
   "pythonVersion": "3.12",
   "typeCheckingMode": "strict",
   "reportMissingModuleSource": false,
   "executionEnvironments": [
-    { "root": "backend/tests", "extraPaths": ["backend/src"], "reportPrivateUsage": false }
+    {
+      "root": "backend/tests",
+      "extraPaths": [
+        "backend/src"
+      ],
+      "reportPrivateUsage": false
+    }
   ]
 }

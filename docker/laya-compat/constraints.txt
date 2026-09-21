@@ -1,0 +1,9 @@
+# Verified Laya runtime set (Task 0.2, 2026-09-21). Keep in sync with
+# docs/architecture/laya-compatibility.md.
+laya==0.3.4
+torch==2.8.0
+transformers==5.17.0
+huggingface_hub==1.32.0
+safetensors==0.8.0
+tokenizers==0.23.2
+numpy==2.5.3

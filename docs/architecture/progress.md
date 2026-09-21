@@ -18,7 +18,7 @@ Tracks `LOCAL_DECISION_HUB_IMPLEMENTATION_PLAN.md` §17.
 | Task | Status | Notes |
 | --- | --- | --- |
 | 0.1 Independent repository | done | |
-| 0.2 Upstream compatibility | in progress | Real-model run must happen under Docker |
+| 0.2 Upstream compatibility | done (Linux) | Real-model probe run under Docker. Native Windows run is tracked in 0.3d. Checkpoint license is a release blocker. |
 | 0.3a Fake-engine Windows packaging | todo | |
 | 0.3b Native PE/DLL signature inventory | todo | Script must fail the release build on unsigned/unverifiable required PE files |
 | 0.3c Complete release-payload signing | todo | Every shipped PE file, not only the installer/launcher |
