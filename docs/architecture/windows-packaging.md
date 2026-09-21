@@ -29,7 +29,7 @@ Measured on the dev machine (2026-09-21, Windows 11, Python 3.14.1, PyInstaller 
 
 The payload already contains native PE files: `python3xx.dll`, `VCRUNTIME140.dll`, `libcrypto-3.dll`, `libssl-3.dll`, and several `.pyd` extension modules. A real-model build adds torch's DLLs. On the dev machine, Windows Application Control blocks torch's `shm.dll` natively, which is why 0.3b–0.3d exist.
 
-The smoke report will include a fake-engine decision once the service contract exists (Task 2.1).
+Since Task 2.1, the smoke test also seeds the example recipes into the isolated data directory and runs `email-triage` through the fake engine. It fails unless the decision completes.
 
 ## 0.3b: native PE signature inventory
 
@@ -39,12 +39,14 @@ The smoke report will include a fake-engine decision once the service contract e
 - Verification uses Windows' `Get-AuthenticodeSignature`. Anything other than `Valid` fails, including `NotSigned`, `HashMismatch`, `UnknownError`, a missing result, and a PowerShell error. In release mode **every** PE file is required, with no exemption list. Release mode refuses to run off Windows.
 - The subprocess drops an inherited `PSModulePath`. Without that, running from PowerShell 7 stops Windows PowerShell from loading `Microsoft.PowerShell.Security`, and every file came back as `Error` (it failed closed).
 
-Current fake-engine payload (2026-09-21): 14 PE files, 13 valid, 1 not.
+Current fake-engine payload (2026-09-21, after Task 2.1): 42 files, 28.5 MB. 27 PE files: 24 valid, 3 not.
 
 | Files | Signer |
 | --- | --- |
-| `python314.dll`, `libcrypto-3.dll`, `libssl-3.dll`, 9 stdlib `.pyd` | Python Software Foundation |
+| `python314.dll`, `libcrypto-3.dll`, `libssl-3.dll`, stdlib `.pyd` files | Python Software Foundation |
 | `VCRUNTIME140.dll` | Microsoft Windows Software Compatibility Publisher |
 | `openreflex-service.exe` (PyInstaller bootloader) | **NotSigned** |
+| `pydantic_core/_pydantic_core.cp314-win_amd64.pyd` | **NotSigned** (PyPI wheel) |
+| `yaml/_yaml.cp314-win_amd64.pyd` | **NotSigned** (PyPI wheel) |
 
 What to expect: the full service adds third-party extension modules (pydantic-core, PyYAML, and later the web server and MCP stack). A real-model build adds torch, tokenizers, safetensors, and numpy. PyPI wheels generally ship these **unsigned**. 0.3c must sign every one of them with the project's certificate, or replace them with signed builds. Signing only the launcher or installer does not satisfy the requirement.

@@ -56,6 +56,8 @@ def build() -> Path:
             str(work),
             "--specpath",
             str(work),
+            "--collect-data",
+            "openreflex",
             "--add-data",
             f"{ROOT / 'LICENSE'}{os.pathsep}.",
             "--add-data",
@@ -103,10 +105,13 @@ def smoke(app_dir: Path) -> dict[str, Any]:
             raise SystemExit(f"smoke: wrong install dir {report['install_dir']}")
         if Path(report["data_dir"]).resolve() != data.resolve() or not data.is_dir():
             raise SystemExit("smoke: data directory was not used")
+        if report["decision"]["status"] != "completed" or len(report["examples_seeded"]) != 4:
+            raise SystemExit(f"smoke: fake decision failed: {report['decision']}")
     if _snapshot(app_dir) != before:
         raise SystemExit("smoke: the install directory was modified at runtime")
     size = sum(p.stat().st_size for p in app_dir.rglob("*") if p.is_file())
     return {
+        "decision": report["decision"],
         "cold_start_s": round(cold_start_s, 2),
         "installed_bytes": size,
         "files": sum(1 for p in app_dir.rglob("*") if p.is_file()),

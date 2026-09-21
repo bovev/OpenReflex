@@ -53,4 +53,10 @@ def test_smoke_writes_only_to_data_dir(
     report = json.loads(capsys.readouterr().out)
     assert report["data_dir_writable"] is True
     assert report["frozen"] is False
-    assert list((tmp_path / "data").iterdir()) == []
+    assert report["decision"] == {
+        "engine": "fake",
+        "status": "completed",
+        "questions": ["department", "priority", "urgent"],
+    }
+    assert len(report["examples_seeded"]) == 4
+    assert [p.name for p in (tmp_path / "data").iterdir()] == ["recipes"]

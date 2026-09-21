@@ -80,7 +80,16 @@ def build_steps(args: argparse.Namespace) -> list[Step]:
         Step("secret scan", _uv("python", "scripts/scan_secrets.py")),
         Step(
             "windows package",
-            _uv("python", "packaging/windows/build.py", "--smoke"),
+            [
+                "uv",
+                "run",
+                "--frozen",
+                "--group",
+                "package",
+                "python",
+                "packaging/windows/build.py",
+                "--smoke",
+            ],
             args.package_windows,
         ),
     ]

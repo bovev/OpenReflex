@@ -10,17 +10,25 @@ from collections.abc import Sequence
 from typing import Any
 
 from openreflex import __version__
+from openreflex.decisions import DecisionService
+from openreflex.engine.fake import FakeEngine
 from openreflex.identity import PRODUCT_NAME, SERVICE_EXECUTABLE
 from openreflex.paths import data_dir, install_dir
+from openreflex.recipes.store import RecipeStore
 
 
 def smoke() -> dict[str, Any]:
-    """Self-check used by packaging tests. Never loads a real model."""
+    """Self-check used by packaging tests. Uses the fake engine, never a real model."""
     target = data_dir()
     target.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile(dir=target, prefix=".smoke-", delete=True) as probe:
         probe.write(b"ok")
         probe.flush()
+    store = RecipeStore(target / "recipes")
+    seeded = store.seed_examples()
+    result = DecisionService(store, FakeEngine()).run(
+        "email-triage", "We were charged twice for invoice 4471. Please refund."
+    )
     return {
         "product": PRODUCT_NAME,
         "version": __version__,
@@ -28,6 +36,12 @@ def smoke() -> dict[str, Any]:
         "install_dir": str(install_dir()),
         "data_dir": str(target),
         "data_dir_writable": True,
+        "examples_seeded": sorted(seeded),
+        "decision": {
+            "engine": "fake",
+            "status": result.status.value,
+            "questions": sorted(result.answers),
+        },
     }
 
 

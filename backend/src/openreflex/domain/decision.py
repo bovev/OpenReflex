@@ -21,6 +21,10 @@ class InputLimitError(ValueError):
     """Decision input is outside the V1 bounds."""
 
 
+class InputTooLargeError(InputLimitError):
+    """Decision input is larger than the serialized-size limit."""
+
+
 def _measure(value: object, depth: int, counter: list[int]) -> None:
     if depth > MAX_INPUT_DEPTH:
         raise InputLimitError(f"input nesting exceeds {MAX_INPUT_DEPTH} levels")
@@ -68,7 +72,7 @@ def normalize_input(value: object) -> dict[str, JsonValue]:
     except ValueError as exc:
         raise InputLimitError("input numbers must be finite") from exc
     if len(encoded) > MAX_INPUT_BYTES:
-        raise InputLimitError(f"input exceeds {MAX_INPUT_BYTES} bytes when serialized")
+        raise InputTooLargeError(f"input exceeds {MAX_INPUT_BYTES} bytes when serialized")
     return state
 
 
