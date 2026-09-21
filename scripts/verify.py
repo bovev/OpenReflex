@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-PY_PATHS = ["backend", "mcp", "scripts"]
+PY_PATHS = ["backend", "mcp", "scripts", "packaging"]
 COVERAGE_MIN = 85
 
 

@@ -19,7 +19,7 @@ Tracks `LOCAL_DECISION_HUB_IMPLEMENTATION_PLAN.md` §17.
 | --- | --- | --- |
 | 0.1 Independent repository | done | |
 | 0.2 Upstream compatibility | done (Linux) | Real-model probe run under Docker. Native Windows run is tracked in 0.3d. Checkpoint license is a release blocker. |
-| 0.3a Fake-engine Windows packaging | todo | |
+| 0.3a Fake-engine Windows packaging | done | Onedir build + smoke locally and in CI. Smoke decision added with 2.1. See windows-packaging.md |
 | 0.3b Native PE/DLL signature inventory | todo | Script must fail the release build on unsigned/unverifiable required PE files |
 | 0.3c Complete release-payload signing | todo | Every shipped PE file, not only the installer/launcher |
 | 0.3d Clean-machine Application Control smoke test | todo | Release blocker. Can't be satisfied by WSL2/Linux or an unsigned dev build. |
