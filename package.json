@@ -1,0 +1,8 @@
+{
+  "name": "openreflex-workspace",
+  "private": true,
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "pyright": "1.1.414"
+  }
+}

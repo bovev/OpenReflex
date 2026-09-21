@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+*.egg-info/
+
+# Node
+node_modules/
+frontend/dist/
+
+# Packaging output
+build/
+dist/
+packaging/windows/output/
+
+# Model weights and local state must never be committed
+*.safetensors
+.hf-cache/
+.openreflex-dev/
+
+# Editors / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+Thumbs.db
+.DS_Store

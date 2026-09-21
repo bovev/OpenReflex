@@ -1,0 +1,71 @@
+[project]
+name = "openreflex"
+version = "0.1.0.dev0"
+description = "Local System 1 decision recipes, powered by Laya, usable from MCP clients."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.9,<3",
+    "pyyaml>=6.0.2,<7",
+]
+
+[project.optional-dependencies]
+# Real inference engine. Heavy (torch); never needed for ordinary tests.
+laya = ["laya==0.3.4"]
+
+[dependency-groups]
+dev = [
+    "black>=25.1",
+    "ruff>=0.9",
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+]
+
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["backend/src/openreflex"]
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "SIM", "RUF", "TID"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S101", "S105", "S106"]
+"scripts/**" = ["S603", "S607"]
+"backend/src/openreflex/laya_adapter/**" = ["TID251"]
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"laya".msg = "Only openreflex.laya_adapter may import laya."
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "real_model: needs installed Laya and downloaded weights (run with --real-model)",
+]
+
+[tool.coverage.run]
+source = ["openreflex"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
+[tool.uv]
+# uv-managed CPython builds are blocked by Windows Application Control on
+# managed machines; use the signed system interpreter instead.
+python-preference = "only-system"

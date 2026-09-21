@@ -4,21 +4,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-The repository is pre-implementation: the only source of truth is `LOCAL_DECISION_HUB_IMPLEMENTATION_PLAN.md`. Read the relevant section of it before starting any task. Work proceeds strictly in the plan's task order (§17, Phase 0 → 6); the Windows packaging spike (Task 0.3) is intentionally early. One task per change, commit after each completed task. Update this file as real commands and structure come into existence.
+Implementation follows `LOCAL_DECISION_HUB_IMPLEMENTATION_PLAN.md` in its task order (§17, Phase 0 → 6). Read the relevant section before starting a task. Keep each change to one task and commit after each completed task. Progress and deviations from the plan are tracked in `docs/architecture/progress.md`.
 
-"Local Decision Hub" is a working title. Keep the product name, executable names, package slug, app-data directory, and protocol version centralized (e.g. in `settings.py`) so a rename is not a repo-wide edit.
+The product is named **OpenReflex** (the plan's "Local Decision Hub" is superseded). The package is `openreflex`. Naming (product name, executable names, app-data dir, protocol version) lives in one identity module, so don't hard-code it elsewhere.
 
-## Commands (planned — verify they exist before relying on them)
+## Dev machine constraints (Windows Application Control)
 
-- `py scripts/verify.py` — the single supported local/CI check. Runs, fail-fast: formatting → Python lint + type check → Python tests + coverage → frontend lint/typecheck/tests/build → generated-contract drift → offline secret/dependency checks. Must pass before every commit once it exists. Never remove a check from it to make a task pass.
-- `py scripts/verify.py --real-model` — opt-in tests against downloaded Laya weights.
-- `py scripts/verify.py --package-windows` — opt-in PyInstaller/installer smoke tests.
-- Python deps are managed with `uv` (`uv.lock`); frontend with npm (`package-lock.json`).
-- The plan does not pick a Python formatter. When creating `pyproject.toml`, choose `ruff format` or `black`, wire it into `verify.py`, and record the choice here.
+The dev machine enforces Windows Application Control. It blocks torch DLLs, uv-managed CPython, and mypy's compiled DLLs. **Never disable or bypass it.**
+- Use the system Python 3.14 (`[tool.uv] python-preference = "only-system"`). Code must stay compatible with 3.12 (`requires-python >=3.12`, black/ruff/pyright target 3.12).
+- Type checking uses pyright (npm), not mypy.
+- Laya/torch can't run natively here. Real-model compatibility tests run under Docker. Everything else uses the deterministic fake engine.
+- Native Windows real-model support stays a release blocker. Task 0.3 is split into: fake-engine packaging → native PE/DLL signature inventory → complete release-payload signing → clean-machine Application Control smoke test. Never mark it done based on WSL2/Linux, an unsigned build, or signing only the installer/launcher.
+
+## Commands
+
+- `py scripts/verify.py` — the single supported local/CI check (stdlib-only script, runs tools through `uv run --frozen`). Fail-fast order: black --check → ruff → pyright → pytest with coverage floor → frontend lint/typecheck/test/build (once `frontend/` exists) → contract drift (once `contracts/` exists) → secret scan. Must pass before every commit. Never remove a check to make a task pass.
+- `py scripts/verify.py --real-model` / `--package-windows` — opt-in, expensive.
+- Format: `uv run python -m black .` (black is the formatter; system `py -m black` is blocked by App Control, so run it through the venv).
+- Single test: `uv run python -m pytest backend/tests/test_x.py::test_name`
+- Setup: `uv sync` and `npm install` (root npm workspace holds pyright, and later the frontend).
+- Tests marked `@pytest.mark.real_model` are skipped unless `--real-model` is given.
 
 ## Stack
 
-Python 3.12, FastAPI, Pydantic v2, YAML recipes (safe loading), stdlib SQLite, official MCP Python SDK (stdio). Frontend: React + TypeScript + Vite, built to static assets served by FastAPI, no CDN/external assets. Packaging: PyInstaller `--onedir` + Inno Setup, user-scoped, Windows 11 x64, CPU-only. Model weights are downloaded at first run, never bundled.
+Python ≥3.12, FastAPI, Pydantic v2, YAML recipes (safe loading), stdlib SQLite, official MCP Python SDK (stdio). Frontend: React + TypeScript + Vite, built to static assets served by FastAPI, no CDN/external assets. Packaging: PyInstaller `--onedir` + Inno Setup, user-scoped, Windows 11 x64, CPU-only. Model weights are downloaded at first run, never bundled. `laya` is an optional extra (`openreflex[laya]`), so ordinary environments don't install torch.
 
 ## Architecture
 
@@ -32,10 +41,10 @@ MCP client --stdio--> local-decision-mcp (thin bridge) --HTTP+token--> Local Dec
 
 Invariants that span modules:
 
-- **Only `backend/src/local_decision_hub/laya_adapter/` may import `laya`.** Everything else talks to the `DecisionEngine` protocol (`ensure_model`, `predict`, `unload`). Upstream objects must never leak into domain models, the recipe schema, or the result envelope. Upstream mismatches → add a failing compatibility test, fix the adapter, update `docs/architecture/laya-compatibility.md`.
+- **Only `backend/src/openreflex/laya_adapter/` may import `laya`** (ruff TID251 enforces it). Everything else talks to the `DecisionEngine` protocol (`ensure_model`, `predict`, `unload`). Upstream objects must never leak into domain models, the recipe schema, or the result envelope. Upstream mismatches → add a failing compatibility test, fix the adapter, update `docs/architecture/laya-compatibility.md`.
 - **The backend owns everything** (recipes, models, policy, history, Laya lifecycle) and must work without UI or MCP. The UI uses the same documented `/v1` API as the tests; it never touches the filesystem directly.
 - **The MCP bridge never loads a model.** It forwards to the running service, auto-starting it (argument array, `shell=False`) and polling `/health/ready` if needed. stdout is protocol-only; logs go to stderr.
-- **Single backend instance** owns the model and state; UI and MCP discover the same endpoint and token from app state under `%LOCALAPPDATA%/<slug>/` (never the install dir).
+- **Single backend instance** owns the model and state; UI and MCP discover the same endpoint and token from app state under `%LOCALAPPDATA%/OpenReflex/` (never the install dir).
 - **Stable product-owned contracts**: recipe `schema_version: 1` (§9.1) and the decision result envelope with `contract_version` (§9.3). `review` (e.g. `needs_review`) comes from the review policy + warnings and is shown separately from raw probability — it is not a correctness claim.
 - Inference runs off the event loop through a single worker with a bounded queue (`429` when full); model loading is serialized.
 - Default model profile is `typed-decisions`; `english`, `multilingual`, `auto` are advanced. Every result reports the actual checkpoint and pinned revision.

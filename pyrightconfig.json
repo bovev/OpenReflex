@@ -1,0 +1,11 @@
+{
+  "include": ["backend/src", "backend/tests", "scripts"],
+  "venvPath": ".",
+  "venv": ".venv",
+  "pythonVersion": "3.12",
+  "typeCheckingMode": "strict",
+  "reportMissingModuleSource": false,
+  "executionEnvironments": [
+    { "root": "backend/tests", "extraPaths": ["backend/src"], "reportPrivateUsage": false }
+  ]
+}
