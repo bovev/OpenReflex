@@ -1,0 +1,26 @@
+schema_version: 1
+id: support-routing
+name: Support ticket routing (example)
+description: >-
+  Demonstration recipe, not a production-validated policy. Sorts support
+  tickets by issue type and flags customers who may leave.
+model_profile: typed-decisions
+questions:
+  category:
+    type: choice
+    instructions: What kind of problem is the customer reporting?
+    criteria:
+      billing: Charges, invoices, refunds, or subscription changes
+      login: Sign-in, password, or account access problems
+      bug: Something in the product is broken or behaves unexpectedly
+      how-to: A question about how to use a feature
+      feature-request: A request for something the product does not do yet
+  needs_human:
+    type: noul
+    instructions: Does this ticket need a person rather than a help-center article?
+  churn_risk:
+    type: noul
+    instructions: Is the customer threatening to cancel or leave?
+review_policy:
+  default_min_confidence: 0.8
+  on_low_confidence: needs_review

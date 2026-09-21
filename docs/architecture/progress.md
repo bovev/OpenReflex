@@ -24,7 +24,7 @@ Tracks `LOCAL_DECISION_HUB_IMPLEMENTATION_PLAN.md` §17.
 | 0.3c Complete release-payload signing | blocked on owner | Needs a code-signing certificate (or Trusted Signing account). Every shipped PE file must be signed, not only the installer/launcher. |
 | 0.3d Clean-machine Application Control smoke test | blocked on owner | Needs a clean Windows 11 VM with Application Control enforced, and signed output from 0.3c. Release blocker. Can't be satisfied by WSL2/Linux or an unsigned dev build. |
 | 1.1 Domain models | done | JSON Schemas are in `contracts/`, and drift is checked by verify |
-| 1.2 Recipe storage | todo | |
+| 1.2 Recipe storage | done | Symlink tests skip on unprivileged Windows and are verified on Linux (Docker, CI). Examples ship as package data in `openreflex/recipes/examples/` (the plan has `recipes/examples/` at the top level). |
 | 2.1 Fake engine + service contract | todo | |
 | 2.2 LayaAdapter | todo | |
 | 2.3 Model manager | todo | |

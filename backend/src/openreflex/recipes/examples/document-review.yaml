@@ -1,0 +1,26 @@
+schema_version: 1
+id: document-review
+name: Document review (example)
+description: >-
+  Demonstration recipe, not a production-validated policy. Classifies a
+  document and flags ones that should get a closer human review.
+model_profile: typed-decisions
+questions:
+  document_type:
+    type: choice
+    instructions: What kind of document is this?
+    criteria:
+      contract: An agreement between parties with terms and obligations
+      invoice: A request for payment for goods or services
+      policy: Internal rules, guidelines, or procedures
+      report: A summary of results, findings, or status
+      other: Any other kind of document
+  contains_personal_data:
+    type: noul
+    instructions: Does the document contain personal data about identifiable people?
+  needs_legal_review:
+    type: noul
+    instructions: Should someone from legal review this document before it is used?
+review_policy:
+  default_min_confidence: 0.85
+  on_low_confidence: needs_review

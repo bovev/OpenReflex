@@ -115,6 +115,7 @@ def test_schema_version_errors(version: object) -> None:
         "x" * 65,
         "c:",
         ".",
+        "email-triage\n",
     ],
 )
 def test_invalid_recipe_ids(bad_id: str) -> None:
