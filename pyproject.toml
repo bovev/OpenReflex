@@ -7,8 +7,10 @@ license = "Apache-2.0"
 license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
 requires-python = ">=3.12"
 dependencies = [
+    "fastapi>=0.115,<1",
     "pydantic>=2.9,<3",
     "pyyaml>=6.0.2,<7",
+    "uvicorn>=0.32,<1",
 ]
 
 [project.optional-dependencies]
@@ -21,6 +23,7 @@ dev = [
     "ruff>=0.9",
     "pytest>=8.3",
     "pytest-cov>=6.0",
+    "httpx2>=2.13.0",
 ]
 package = [
     "pyinstaller>=6.16",

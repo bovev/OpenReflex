@@ -29,7 +29,7 @@ Tracks `LOCAL_DECISION_HUB_IMPLEMENTATION_PLAN.md` §17.
 | 2.1 Fake engine + service contract | done | Policy in `domain/policy.py`. Fake engine markers force each state. The packaged smoke test runs a fake decision. |
 | 2.2 LayaAdapter | done (Linux) | 33 host contract tests plus 7 real-model tests in Docker. Top-level `packaging/` was renamed to `release/` because it shadowed the PyPI `packaging` module that transformers imports. |
 | 2.3 Model manager | done | Stdlib HTTPS source fetches only catalog files at the pinned revision. Resumable, and every file is verified (LFS sha256 or git blob SHA-1). OS file locks, damaged state, remove. Real hub checked for small files in Docker. |
-| 3.1 FastAPI service | todo | |
+| 3.1 FastAPI service | done | All plan endpoints, plus recipe import/export, model verify, preferences, and clear history (needed by the UI). Security middleware covers Host, Origin, token, body limit, headers, and content-free logs. `?confirm=` guards deletes. |
 | 3.2 Lifecycle / single instance | todo | |
 | 4.1 MCP bridge | todo | |
 | 4.2 Client config generation | todo | |
