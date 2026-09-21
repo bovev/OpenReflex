@@ -30,6 +30,7 @@ class ErrorCode(StrEnum):
     FORBIDDEN = "forbidden"
     NOT_FOUND = "not_found"
     CONFIRMATION_REQUIRED = "confirmation_required"
+    SERVICE_UNAVAILABLE = "service_unavailable"
     INTERNAL = "internal"
 
 

@@ -20,6 +20,7 @@
         "forbidden",
         "not_found",
         "confirmation_required",
+        "service_unavailable",
         "internal"
       ],
       "title": "ErrorCode",

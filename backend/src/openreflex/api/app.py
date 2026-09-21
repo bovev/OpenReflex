@@ -52,6 +52,7 @@ STATUS_CODES: Final[dict[ErrorCode, int]] = {
     ErrorCode.FORBIDDEN: 403,
     ErrorCode.NOT_FOUND: 404,
     ErrorCode.CONFIRMATION_REQUIRED: 400,
+    ErrorCode.SERVICE_UNAVAILABLE: 503,
     ErrorCode.INTERNAL: 500,
 }
 RETRY_AFTER_S: Final = "2"
@@ -323,6 +324,16 @@ def create_app(ctx: AppContext, *, ui_dir: Path | None = None) -> FastAPI:
     @app.delete("/v1/history", status_code=204)
     def clear_history() -> None:  # pyright: ignore[reportUnusedFunction]
         ctx.history.clear()
+
+    @app.post("/v1/shutdown", status_code=202)
+    def shutdown() -> Health:  # pyright: ignore[reportUnusedFunction]
+        stop: Callable[[], None] | None = getattr(app.state, "request_shutdown", None)
+        if stop is None:
+            raise AppError(
+                ErrorCode.SERVICE_UNAVAILABLE, "this instance cannot be stopped remotely"
+            )
+        stop()
+        return Health(status="stopping")
 
     if ui_dir is not None and (ui_dir / "index.html").is_file():
         _mount_ui(app, ui_dir)
