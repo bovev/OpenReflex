@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to CODING AGENTS when working with code in this repository.
 
 ## Current state
 
@@ -19,7 +19,7 @@ The dev machine enforces Windows Application Control. It blocks torch DLLs, uv-m
 ## Commands
 
 - `py scripts/verify.py` — the single supported local/CI check (stdlib-only script, runs tools through `uv run --frozen`). Fail-fast order: black --check → ruff → pyright → pytest with coverage floor → frontend lint/typecheck/test/build (once `frontend/` exists) → contract drift (once `contracts/` exists) → secret scan. Must pass before every commit. Never remove a check to make a task pass.
-- `py scripts/verify.py --real-model` / `--package-windows` — opt-in, expensive.
+- `py scripts/verify.py --real-model` / `--package-windows` — opt-in, expensive. `--real-model` runs native pytest (no Docker); on this machine use `py scripts/laya_compat/run.py probe --profile typed-decisions` and `py scripts/laya_compat/run.py pytest` (Docker) instead.
 - Format: `uv run python -m black .` (black is the formatter; system `py -m black` is blocked by App Control, so run it through the venv).
 - Single test: `uv run python -m pytest backend/tests/test_x.py::test_name`
 - Setup: `uv sync` and `npm install` (root npm workspace holds pyright, and later the frontend).
@@ -27,12 +27,12 @@ The dev machine enforces Windows Application Control. It blocks torch DLLs, uv-m
 
 ## Stack
 
-Python ≥3.12, FastAPI, Pydantic v2, YAML recipes (safe loading), stdlib SQLite, official MCP Python SDK (stdio). Frontend: React + TypeScript + Vite, built to static assets served by FastAPI, no CDN/external assets. Packaging: PyInstaller `--onedir` + Inno Setup, user-scoped, Windows 11 x64, CPU-only. Model weights are downloaded at first run, never bundled. `laya` is an optional extra (`openreflex[laya]`), so ordinary environments don't install torch.
+Python ≥3.12, FastAPI, Pydantic v2, YAML recipes (safe loading), stdlib SQLite, official MCP Python SDK (stdio). Frontend: React + TypeScript + Vite, built to static assets served by FastAPI, no CDN/external assets. Packaging: PyInstaller `--onedir` + Inno Setup, user-scoped, Windows 11 x64, CPU-only. Model weights are never bundled; they are downloaded only on an explicit API action (`POST /v1/models/{profile}/download`) — service startup downloads nothing. `laya` is an optional extra (`openreflex[laya]`), so ordinary environments don't install torch.
 
 ## Architecture
 
 ```
-MCP client --stdio--> local-decision-mcp (thin bridge) --HTTP+token--> Local Decision Service <--HTTP+token-- browser UI
+MCP client --stdio--> openreflex-mcp (thin bridge) --HTTP+token--> OpenReflex Service <--HTTP+token-- browser UI
                                                                             |
                                                   recipe store (YAML) / model manager / history (SQLite, opt-in)
                                                                             |
@@ -41,11 +41,11 @@ MCP client --stdio--> local-decision-mcp (thin bridge) --HTTP+token--> Local Dec
 
 Invariants that span modules:
 
-- **Only `backend/src/openreflex/laya_adapter/` may import `laya`** (ruff TID251 enforces it). Everything else talks to the `DecisionEngine` protocol (`ensure_model`, `predict`, `unload`). Upstream objects must never leak into domain models, the recipe schema, or the result envelope. Upstream mismatches → add a failing compatibility test, fix the adapter, update `docs/architecture/laya-compatibility.md`.
+- **Only `backend/src/openreflex/laya_adapter/` may import `laya`** (ruff TID251 enforces it). Everything else talks to the `DecisionEngine` protocol (`ensure_model`, `predict`, `unload`, `status`). Upstream objects must never leak into domain models, the recipe schema, or the result envelope. Upstream mismatches → add a failing compatibility test, fix the adapter, update `docs/architecture/laya-compatibility.md`.
 - **The backend owns everything** (recipes, models, policy, history, Laya lifecycle) and must work without UI or MCP. The UI uses the same documented `/v1` API as the tests; it never touches the filesystem directly.
-- **The MCP bridge never loads a model.** It forwards to the running service, auto-starting it (argument array, `shell=False`) and polling `/health/ready` if needed. stdout is protocol-only; logs go to stderr.
-- **Single backend instance** owns the model and state; UI and MCP discover the same endpoint and token from app state under `%LOCALAPPDATA%/OpenReflex/` (never the install dir).
-- **Stable product-owned contracts**: recipe `schema_version: 1` (§9.1) and the decision result envelope with `contract_version` (§9.3). `review` (e.g. `needs_review`) comes from the review policy + warnings and is shown separately from raw probability — it is not a correctness claim.
+- **The MCP bridge never loads a model.** It forwards to the running service, auto-starting it (argument array, `shell=False`) and polling `/health/live` if needed (`/health/ready` reports model readiness and can legitimately be false on first run). stdout is protocol-only; logs go to stderr.
+- **One service per data directory** owns the model and state (OS file lock on `service.lock`). The CLI and MCP launchers discover the endpoint (`service.json`) and token (owner-only token file) from app state under `%LOCALAPPDATA%/OpenReflex/` (never the install dir); the browser cannot read that directory and receives the token through a URL fragment.
+- **Stable product-owned contracts**: recipe `schema_version: 1` (§9.1) and the decision result envelope with `contract_version` (§9.3). `review` (e.g. `needs_review`) is forced by low confidence (below the question's threshold) and by specific truncation warnings (input/instructions/options); not every warning forces it. It is shown separately from raw probability — it is not a correctness claim.
 - Inference runs off the event loop through a single worker with a bounded queue (`429` when full); model loading is serialized.
 - Default model profile is `typed-decisions`; `english`, `multilingual`, `auto` are advanced. Every result reports the actual checkpoint and pinned revision.
 
@@ -58,7 +58,7 @@ Invariants that span modules:
 ## Hard constraints (stop and ask before changing)
 
 - Bind only to `127.0.0.1`; reject `0.0.0.0`. Bearer token + Host/Origin validation + restrictive CORS + CSP.
-- Decision input is plain text or bounded JSON only — no file paths, URLs, or attachments (in API or MCP). No generic shell/HTTP/filesystem MCP tools.
+- Decision input is plain text or bounded JSON only (in API or MCP). Path- or URL-looking strings are allowed as inert text; what is forbidden is adding path, URL, upload, attachment, or fetch source fields, and nothing may open or retrieve those strings. No generic shell/HTTP/filesystem MCP tools.
 - Recipes: strict (unknown fields rejected), no code/templates/URLs/env expansion/paths; IDs are lowercase kebab-case mapped to paths by the store (atomic writes, traversal/symlink protection).
 - Never log request bodies, decision inputs/answers, recipe content, tokens, or MCP payloads.
 - History off by default; no telemetry, cloud inference, connectors, or automatic downstream actions.

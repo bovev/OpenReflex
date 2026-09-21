@@ -29,3 +29,5 @@ release/windows/output/
 .idea/
 Thumbs.db
 .DS_Store
+
+.opencode/
