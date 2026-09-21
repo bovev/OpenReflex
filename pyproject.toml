@@ -49,7 +49,7 @@ ignore = ["E501"]
 known-first-party = ["openreflex", "openreflex_mcp"]
 
 [tool.ruff.lint.per-file-ignores]
-"**/tests/**" = ["S101", "S105", "S106"]
+"**/tests/**" = ["S101", "S105", "S106", "S603"]
 "scripts/**" = ["S603", "S607"]
 "release/**" = ["S603", "S607"]
 "backend/src/openreflex/laya_adapter/**" = ["TID251"]
