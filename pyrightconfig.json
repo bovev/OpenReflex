@@ -17,6 +17,13 @@
   "reportMissingModuleSource": false,
   "executionEnvironments": [
     {
+      "root": "packaging",
+      "extraPaths": [
+        "backend/src",
+        "packaging/windows"
+      ]
+    },
+    {
       "root": "backend/tests",
       "extraPaths": [
         "backend/src"

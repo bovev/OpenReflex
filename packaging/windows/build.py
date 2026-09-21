@@ -2,6 +2,7 @@
 
     uv run python packaging/windows/build.py            # build only
     uv run python packaging/windows/build.py --smoke    # build, then run checks
+    uv run python packaging/windows/build.py --release  # also require every PE file signed
 
 Output goes to ``packaging/windows/output/`` (git-ignored). The smoke test runs
 the frozen executable with an isolated data directory and checks that it
@@ -25,6 +26,9 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 OUTPUT = HERE / "output"
 sys.path.insert(0, str(ROOT / "backend" / "src"))
+sys.path.insert(0, str(HERE))
+
+import signatures  # noqa: E402
 
 from openreflex.identity import SERVICE_EXECUTABLE  # noqa: E402
 from openreflex.paths import DATA_DIR_ENV  # noqa: E402
@@ -109,15 +113,22 @@ def smoke(app_dir: Path) -> dict[str, Any]:
     }
 
 
+def check_signatures(app_dir: Path, release: bool) -> int:
+    """Write the PE signature inventory; in release mode fail on any unsigned file."""
+    argv = [str(app_dir), "--out", str(OUTPUT / "signature-inventory.json")]
+    return signatures.main([*argv, "--release"] if release else argv)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--smoke", action="store_true", help="smoke-test the built package")
+    parser.add_argument("--release", action="store_true", help="fail on unsigned PE files")
     parser.add_argument("--skip-build", action="store_true", help="reuse the existing build")
     args = parser.parse_args()
     app_dir = OUTPUT / "dist" / SERVICE_EXECUTABLE if args.skip_build else build()
-    if args.smoke:
+    if args.smoke or args.release:
         print(json.dumps(smoke(app_dir), indent=2))
-    return 0
+    return check_signatures(app_dir, args.release)
 
 
 if __name__ == "__main__":

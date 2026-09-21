@@ -59,7 +59,7 @@ known-first-party = ["openreflex", "openreflex_mcp"]
 "laya".msg = "Only openreflex.laya_adapter may import laya."
 
 [tool.pytest.ini_options]
-testpaths = ["backend/tests"]
+testpaths = ["backend/tests", "packaging/tests"]
 addopts = "-ra --strict-markers"
 markers = [
     "real_model: needs installed Laya and downloaded weights (run with --real-model)",
