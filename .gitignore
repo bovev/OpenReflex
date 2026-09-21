@@ -16,7 +16,7 @@ frontend/dist/
 # Packaging output
 build/
 dist/
-packaging/windows/output/
+release/windows/output/
 
 # Model weights and local state must never be committed
 *.safetensors

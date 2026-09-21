@@ -1,130 +1,111 @@
 {
+  "laya_version": "0.3.4",
+  "repo_id": "convaiinnovations/laya",
+  "revision": "1c5edc17a7acd8701df6fc341c0d179f1c62c982",
+  "profile": "typed-decisions",
+  "subfolder": "typed-decisions",
   "config": {
-    "encoder": "answerdotai/ModernBERT-large",
-    "head_max_len": 256,
     "max_len": 1024,
+    "head_max_len": 256,
+    "encoder": "answerdotai/ModernBERT-large",
     "temperature": [
       1.0148024559020996,
       1.0374259948730469,
       1.0575125217437744
     ],
     "temperature_by_options": {
-      "choice:11+": 0.10058280825614929,
-      "choice:2": 1.9063563346862793,
       "choice:3-5": 1.7601518630981445,
       "choice:6-10": 1.0000158548355103,
+      "score:3-5": 1.2514300346374512,
       "noul:2": 1.983399510383606,
-      "score:3-5": 1.2514300346374512
+      "choice:11+": 0.10058280825614929,
+      "choice:2": 1.9063563346862793
     }
   },
   "files": [
     {
-      "lfs": false,
       "path": "typed-decisions/encoder/config.json",
+      "size": 2084,
       "sha256": "5268d24ad3b77c8151de5dcb0762ba4391619aad9ab0bda33e36fb083cfeae6d",
-      "size": 2084
+      "lfs": false
     },
     {
-      "lfs": true,
       "path": "typed-decisions/model.safetensors",
+      "size": 842609220,
       "sha256": "4fa56de72383a9d3efa9cfa78955733c81b9fc8067a587ca4beb82c78107a24e",
-      "size": 842609220
+      "lfs": true
     },
     {
-      "lfs": false,
       "path": "typed-decisions/rl_agent_config.json",
+      "size": 847,
       "sha256": "ebf0cd524d92342a6be5e48e9fca3d7c2babfb5a56ccd79d2171ef5d8c7f7be8",
-      "size": 847
+      "lfs": false
     },
     {
-      "lfs": false,
       "path": "typed-decisions/tokenizer/tokenizer.json",
+      "size": 3583228,
       "sha256": "6c8aaa9a542084f2457eab775d4eeb51f92a70c0fd9de28d5edb0ddec3c08d30",
-      "size": 3583228
+      "lfs": false
     },
     {
-      "lfs": false,
       "path": "typed-decisions/tokenizer/tokenizer_config.json",
+      "size": 337,
       "sha256": "08d4cf3ac4dca381759441b85b91a6d40e688471dcd33d15d6649eb0a9a854d1",
-      "size": 337
+      "lfs": false
     }
   ],
   "files_mutated_by_load": [],
-  "laya_version": "0.3.4",
-  "long_input": {
-    "chars": 32000,
-    "response": {
-      "answers": {
-        "urgent": {
-          "action": {
-            "act_probability": 1.0
-          },
-          "confidence": 0.5405,
-          "noul": 0.4595,
-          "type": "noul"
-        }
-      },
-      "model": "laya-rl-agent",
-      "usage": {
-        "input_tokens": 1024,
-        "output_tokens": 0
-      }
-    }
-  },
-  "profile": "typed-decisions",
-  "repo_id": "convaiinnovations/laya",
   "request": {
+    "state": {
+      "text": "Hi, we were charged twice for invoice 4471 this month. Please refund the duplicate payment before Friday's close."
+    },
     "questions": {
       "department": {
-        "criteria": {
-          "finance": "Invoices, payments, and refunds",
-          "other": "Anything that does not fit the other categories",
-          "sales": "Pricing, proposals, and new contracts",
-          "support": "Product problems and technical help"
-        },
+        "type": "choice",
         "instructions": "Which department should handle this request?",
-        "type": "choice"
+        "criteria": {
+          "sales": "Pricing, proposals, and new contracts",
+          "finance": "Invoices, payments, and refunds",
+          "support": "Product problems and technical help",
+          "other": "Anything that does not fit the other categories"
+        }
       },
       "priority": {
+        "type": "score",
+        "instructions": "How important is this request?",
         "criteria": [
           "low",
           "normal",
           "high",
           "critical"
-        ],
-        "instructions": "How important is this request?",
-        "type": "score"
+        ]
       },
       "urgent": {
-        "instructions": "Does this require urgent human attention?",
-        "type": "noul"
+        "type": "noul",
+        "instructions": "Does this require urgent human attention?"
       }
-    },
-    "state": {
-      "text": "Hi, we were charged twice for invoice 4471 this month. Please refund the duplicate payment before Friday's close."
     }
   },
   "response": {
+    "model": "laya-rl-agent",
     "answers": {
       "department": {
+        "type": "choice",
+        "choice": "finance",
+        "probabilities": {
+          "sales": 0.1148,
+          "finance": 0.7177,
+          "support": 0.0966,
+          "other": 0.071
+        },
+        "confidence": 0.3508,
         "action": {
           "act_probability": 1.0
-        },
-        "choice": "finance",
-        "confidence": 0.3508,
-        "probabilities": {
-          "finance": 0.7177,
-          "other": 0.071,
-          "sales": 0.1148,
-          "support": 0.0966
-        },
-        "type": "choice"
+        }
       },
       "priority": {
-        "action": {
-          "act_probability": 1.0
-        },
-        "confidence": 0.2007,
+        "type": "score",
+        "score": 2.2001,
         "legend": {
           "0": "low",
           "1": "normal",
@@ -137,24 +118,43 @@
           "2": 0.4465,
           "3": 0.3994
         },
-        "score": 2.2001,
-        "type": "score"
-      },
-      "urgent": {
+        "confidence": 0.2007,
         "action": {
           "act_probability": 1.0
-        },
-        "confidence": 0.6555,
+        }
+      },
+      "urgent": {
+        "type": "noul",
         "noul": 0.6555,
-        "type": "noul"
+        "confidence": 0.6555,
+        "action": {
+          "act_probability": 1.0
+        }
       }
     },
-    "model": "laya-rl-agent",
     "usage": {
       "input_tokens": 207,
       "output_tokens": 0
     }
   },
-  "revision": "1c5edc17a7acd8701df6fc341c0d179f1c62c982",
-  "subfolder": "typed-decisions"
+  "long_input": {
+    "chars": 32000,
+    "response": {
+      "model": "laya-rl-agent",
+      "answers": {
+        "urgent": {
+          "type": "noul",
+          "noul": 0.4595,
+          "confidence": 0.5405,
+          "action": {
+            "act_probability": 1.0
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 1024,
+        "output_tokens": 0
+      }
+    }
+  }
 }

@@ -158,7 +158,8 @@ def main() -> int:
         "long_input": {"chars": len(long_state["text"]), "response": long_result},
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps(fixture, indent=2, sort_keys=True) + "\n")
+    # Key order matters: option order changes the model input and so the output.
+    args.out.write_text(json.dumps(fixture, indent=2) + "\n")
 
     print(
         json.dumps(

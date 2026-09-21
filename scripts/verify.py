@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-PY_PATHS = ["backend", "mcp", "scripts", "packaging"]
+PY_PATHS = ["backend", "mcp", "scripts", "release"]
 COVERAGE_MIN = 85
 
 
@@ -87,7 +87,7 @@ def build_steps(args: argparse.Namespace) -> list[Step]:
                 "--group",
                 "package",
                 "python",
-                "packaging/windows/build.py",
+                "release/windows/build.py",
                 "--smoke",
             ],
             args.package_windows,

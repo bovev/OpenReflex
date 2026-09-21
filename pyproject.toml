@@ -51,7 +51,7 @@ known-first-party = ["openreflex", "openreflex_mcp"]
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**" = ["S101", "S105", "S106"]
 "scripts/**" = ["S603", "S607"]
-"packaging/**" = ["S603", "S607"]
+"release/**" = ["S603", "S607"]
 "backend/src/openreflex/laya_adapter/**" = ["TID251"]
 "scripts/laya_compat/**" = ["TID251", "S603", "S607"]
 
@@ -59,7 +59,7 @@ known-first-party = ["openreflex", "openreflex_mcp"]
 "laya".msg = "Only openreflex.laya_adapter may import laya."
 
 [tool.pytest.ini_options]
-testpaths = ["backend/tests", "packaging/tests"]
+testpaths = ["backend/tests", "release/tests"]
 addopts = "-ra --strict-markers --import-mode=importlib"
 markers = [
     "real_model: needs installed Laya and downloaded weights (run with --real-model)",

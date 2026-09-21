@@ -11,6 +11,7 @@ Tracks `LOCAL_DECISION_HUB_IMPLEMENTATION_PLAN.md` §17.
 | Type checks (tool unspecified) | pyright via npm | mypy's compiled `librt` DLLs are blocked by Application Control |
 | Formatter (unspecified) | black | Owner decision |
 | Task 0.3 as one task | Split into 0.3a–0.3d (below) | Owner decision. Application Control blocks unsigned native DLLs such as torch |
+| `packaging/windows/` | `release/windows/` | The top-level `packaging/` dir shadowed PyPI `packaging` (transformers import failed under pytest) |
 | Real-model tests on the dev machine | Run under Docker (Linux) | torch DLLs are blocked natively. Native Windows real-model support is still a release blocker. |
 
 ## Task status
@@ -26,7 +27,7 @@ Tracks `LOCAL_DECISION_HUB_IMPLEMENTATION_PLAN.md` §17.
 | 1.1 Domain models | done | JSON Schemas are in `contracts/`, and drift is checked by verify |
 | 1.2 Recipe storage | done | Symlink tests skip on unprivileged Windows and are verified on Linux (Docker, CI). Examples ship as package data in `openreflex/recipes/examples/` (the plan has `recipes/examples/` at the top level). |
 | 2.1 Fake engine + service contract | done | Policy in `domain/policy.py`. Fake engine markers force each state. The packaged smoke test runs a fake decision. |
-| 2.2 LayaAdapter | todo | |
+| 2.2 LayaAdapter | done (Linux) | 33 host contract tests plus 7 real-model tests in Docker. Top-level `packaging/` was renamed to `release/` because it shadowed the PyPI `packaging` module that transformers imports. |
 | 2.3 Model manager | todo | |
 | 3.1 FastAPI service | todo | |
 | 3.2 Lifecycle / single instance | todo | |

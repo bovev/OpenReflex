@@ -1,6 +1,6 @@
 """Inventory every native PE file in a package and check its Authenticode signature.
 
-    uv run python packaging/windows/signatures.py <package-dir> [--release] [--out FILE]
+    uv run python release/windows/signatures.py <package-dir> [--release] [--out FILE]
 
 Every file that is a PE image counts, whatever its extension: .exe, .dll,
 .pyd, .sys, and anything else starting with a valid MZ/PE header. In release

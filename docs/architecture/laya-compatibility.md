@@ -3,7 +3,7 @@
 Release-critical. The adapter (`openreflex.laya_adapter`) and this document must change together.
 
 - **Date last verified:** 2026-09-21
-- **Verified with:** `py scripts/laya_compat/run.py probe --profile typed-decisions` (Linux container, CPU)
+- **Verified with:** `py scripts/laya_compat/run.py probe --profile typed-decisions` and `py scripts/laya_compat/run.py pytest` (7 real-model adapter tests, Linux container, CPU)
 - **Native Windows real-model verification:** **not done — release blocker.** Windows Application Control blocks torch's native DLLs on the development machine (see Task 0.3b–d in `progress.md`).
 
 ## Product ↔ upstream
@@ -48,12 +48,23 @@ Top level: `{"model": "laya-rl-agent", "answers": {...}, "usage": {"input_tokens
 | `score` | `type`, `score` (expected level, float), `probabilities` (`"0"`… → p), `confidence` | `legend`, `action` |
 | `noul` | `type`, `noul` (P(true)), `confidence` (= max(p, 1-p)) | `action` |
 
+## Upstream internals the adapter depends on
+
+These are not public API. The real-model tests pin them.
+
+- `laya.Agent._to_internal(question)` converts a question into the internal `{"t", "ins", "crit"}` form that `laya.common.build_sequence` and `render_options` expect.
+- `laya.common.build_sequence`, `render_options`, and `serialize_state` are used for truncation detection.
+- The head text format `"<type> question: <instructions>"` is used to detect instruction truncation.
+- `laya.Router().route(state, questions)` is used for the `auto` profile. It only reads metadata and never loads or downloads a model. The adapter then loads the pinned local copy of the routed profile itself.
+
 ## Behaviour findings
 
 1. **`confidence` isn't top-class probability.** For `choice` and `score` it's normalized entropy, `1 - H(p)/log k`. In the probe, `department=finance` had p=0.718 but confidence 0.351. A 0.80 policy threshold on this value is much stricter than 0.80 probability. The product result shows both, and the review policy compares against Laya's `confidence`. That's the conservative choice, and the UI must explain it.
 2. **Truncation is silent.** The state is cut to `max_len - len(prefix) - 1` tokens. Options are cut to 48 tokens each and then shrunk to fit `head_max_len`. Instructions are cut to what's left. Laya returns no truncation flag. A 32,000-character input came back with `input_tokens == max_len` (1024) and no warning. The adapter detects truncation by re-tokenizing with the agent's tokenizer.
 3. **Temperature is per (type, option-count bucket).** For example, `choice:11+` uses T≈0.10, which sharpens distributions a lot for 11+ options. That's another reason high-cardinality results get a warning.
-4. **Performance (Linux container, 12 vCPU, CPU only):** model load 4.6 s (cached weights), first decision with 3 questions 497 ms, warm decision 468 ms. That's far from upstream's GPU figures. Native Windows numbers are pending.
+4. **Option order changes the output.** With the same options in alphabetical order instead of recipe order, `finance` went from p=0.718 to p=0.757. Recipes keep option order stable (a YAML mapping, in insertion order), and fixtures must never be written with sorted keys.
+5. **Routing heuristics.** A short German sentence ("Mein Konto wurde zweimal belastet") routed to `english`. Non-Latin scripts reliably route to `multilingual`. That's why `auto` stays experimental.
+6. **Performance (Linux container, 12 vCPU, CPU only):** model load 4.6 s (cached weights), first decision with 3 questions 497 ms, warm decision 468 ms. That's far from upstream's GPU figures. Native Windows numbers are pending.
 
 ## Known limitations (from upstream documentation)
 

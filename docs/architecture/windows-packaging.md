@@ -11,7 +11,7 @@ Plan Task 0.3 is split into four owner-mandated subtasks. The native Windows rea
 
 ## 0.3a: fake-engine `--onedir` package
 
-`uv run python packaging/windows/build.py --smoke` (also `py scripts/verify.py --package-windows`, and the `package-windows` CI job).
+`uv run python release/windows/build.py --smoke` (also `py scripts/verify.py --package-windows`, and the `package-windows` CI job).
 
 The smoke test runs the frozen `openreflex-service.exe smoke` with Python variables removed from the environment and an isolated `OPENREFLEX_DATA_DIR`. It checks:
 - the executable reports itself as frozen and resolves its own install dir;
@@ -33,7 +33,7 @@ Since Task 2.1, the smoke test also seeds the example recipes into the isolated 
 
 ## 0.3b: native PE signature inventory
 
-`packaging/windows/signatures.py <package-dir> [--release] [--out FILE]`. `build.py` always writes `packaging/windows/output/signature-inventory.json`. `build.py --release` fails the build.
+`release/windows/signatures.py <package-dir> [--release] [--out FILE]`. `build.py` always writes `release/windows/output/signature-inventory.json`. `build.py --release` fails the build.
 
 - It finds PE files by their MZ/PE header, not by extension, so a renamed DLL can't slip through. The inventory records path, size, sha256, status, signer, timestamp, and catalog signing.
 - Verification uses Windows' `Get-AuthenticodeSignature`. Anything other than `Valid` fails, including `NotSigned`, `HashMismatch`, `UnknownError`, a missing result, and a PowerShell error. In release mode **every** PE file is required, with no exemption list. Release mode refuses to run off Windows.

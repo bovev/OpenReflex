@@ -3,7 +3,7 @@
     "backend/src",
     "backend/tests",
     "scripts",
-    "packaging"
+    "release"
   ],
   "exclude": [
     "scripts/laya_compat/probe.py",
@@ -17,10 +17,10 @@
   "reportMissingModuleSource": false,
   "executionEnvironments": [
     {
-      "root": "packaging",
+      "root": "release",
       "extraPaths": [
         "backend/src",
-        "packaging/windows"
+        "release/windows"
       ]
     },
     {

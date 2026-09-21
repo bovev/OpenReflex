@@ -1,10 +1,10 @@
 """Build the Windows ``--onedir`` package and optionally smoke-test it.
 
-    uv run python packaging/windows/build.py            # build only
-    uv run python packaging/windows/build.py --smoke    # build, then run checks
-    uv run python packaging/windows/build.py --release  # also require every PE file signed
+    uv run python release/windows/build.py            # build only
+    uv run python release/windows/build.py --smoke    # build, then run checks
+    uv run python release/windows/build.py --release  # also require every PE file signed
 
-Output goes to ``packaging/windows/output/`` (git-ignored). The smoke test runs
+Output goes to ``release/windows/output/`` (git-ignored). The smoke test runs
 the frozen executable with an isolated data directory and checks that it
 starts without system Python, finds its own files, writes only to the data
 directory, and never modifies the install directory.

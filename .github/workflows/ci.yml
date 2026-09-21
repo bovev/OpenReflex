@@ -39,4 +39,4 @@ jobs:
           python-version: "3.12"
       - uses: astral-sh/setup-uv@v6
       - run: uv sync --frozen --group package
-      - run: uv run --frozen python packaging/windows/build.py --smoke
+      - run: uv run --frozen python release/windows/build.py --smoke
