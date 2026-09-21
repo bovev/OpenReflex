@@ -1,0 +1,85 @@
+{
+  "$defs": {
+    "ErrorCode": {
+      "enum": [
+        "invalid_recipe",
+        "recipe_not_found",
+        "recipe_exists",
+        "invalid_input",
+        "input_too_large",
+        "model_not_ready",
+        "model_not_found",
+        "model_busy",
+        "download_failed",
+        "engine_incompatible",
+        "engine_failure",
+        "queue_full",
+        "timeout",
+        "history_disabled",
+        "unauthorized",
+        "forbidden",
+        "not_found",
+        "confirmation_required",
+        "internal"
+      ],
+      "title": "ErrorCode",
+      "type": "string"
+    },
+    "Issue": {
+      "additionalProperties": false,
+      "description": "One actionable problem, e.g. a recipe validation failure.",
+      "properties": {
+        "location": {
+          "title": "Location",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "location",
+        "message"
+      ],
+      "title": "Issue",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "code": {
+      "$ref": "#/$defs/ErrorCode"
+    },
+    "issues": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Issue"
+      },
+      "title": "Issues",
+      "type": "array"
+    },
+    "message": {
+      "title": "Message",
+      "type": "string"
+    },
+    "request_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Request Id"
+    }
+  },
+  "required": [
+    "code",
+    "message"
+  ],
+  "title": "ErrorBody",
+  "type": "object"
+}

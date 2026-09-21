@@ -1,0 +1,367 @@
+{
+  "$defs": {
+    "ChoiceAnswer": {
+      "additionalProperties": false,
+      "properties": {
+        "choice": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z0-9]+(?:[_-][a-z0-9]+)*$",
+          "title": "Choice",
+          "type": "string"
+        },
+        "confidence": {
+          "description": "Engine confidence the review policy uses.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "probabilities": {
+          "patternProperties": {
+            "^[a-z0-9]+(?:[_-][a-z0-9]+)*$": {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1
+          },
+          "title": "Probabilities",
+          "type": "object"
+        },
+        "probability": {
+          "description": "Probability of the chosen option.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Probability",
+          "type": "number"
+        },
+        "review": {
+          "$ref": "#/$defs/Review"
+        },
+        "type": {
+          "const": "choice",
+          "default": "choice",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "choice",
+        "probability",
+        "confidence",
+        "probabilities",
+        "review"
+      ],
+      "title": "ChoiceAnswer",
+      "type": "object"
+    },
+    "DecisionWarning": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/WarningCode"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "question_id": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Question Id"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "title": "DecisionWarning",
+      "type": "object"
+    },
+    "Device": {
+      "enum": [
+        "cpu",
+        "cuda",
+        "mps",
+        "fake"
+      ],
+      "title": "Device",
+      "type": "string"
+    },
+    "ModelInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "checkpoint": {
+          "title": "Checkpoint",
+          "type": "string"
+        },
+        "device": {
+          "$ref": "#/$defs/Device"
+        },
+        "profile": {
+          "$ref": "#/$defs/ModelProfile",
+          "description": "Profile the recipe asked for."
+        },
+        "resolved_profile": {
+          "$ref": "#/$defs/ModelProfile",
+          "description": "Profile that ran (differs for `auto`)."
+        },
+        "revision": {
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "profile",
+        "resolved_profile",
+        "checkpoint",
+        "revision",
+        "device"
+      ],
+      "title": "ModelInfo",
+      "type": "object"
+    },
+    "ModelProfile": {
+      "enum": [
+        "typed-decisions",
+        "english",
+        "multilingual",
+        "auto"
+      ],
+      "title": "ModelProfile",
+      "type": "string"
+    },
+    "NoulAnswer": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "probability_true": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Probability True",
+          "type": "number"
+        },
+        "review": {
+          "$ref": "#/$defs/Review"
+        },
+        "type": {
+          "const": "noul",
+          "default": "noul",
+          "title": "Type",
+          "type": "string"
+        },
+        "value": {
+          "description": "True when probability_true >= 0.5.",
+          "title": "Value",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "value",
+        "probability_true",
+        "confidence",
+        "review"
+      ],
+      "title": "NoulAnswer",
+      "type": "object"
+    },
+    "Review": {
+      "enum": [
+        "ok",
+        "needs_review"
+      ],
+      "title": "Review",
+      "type": "string"
+    },
+    "ScoreAnswer": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "label": {
+          "description": "Criteria text of `level`.",
+          "title": "Label",
+          "type": "string"
+        },
+        "level": {
+          "description": "Most likely level index.",
+          "minimum": 0,
+          "title": "Level",
+          "type": "integer"
+        },
+        "probabilities": {
+          "description": "Per level, lowest first.",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "title": "Probabilities",
+          "type": "array"
+        },
+        "probability": {
+          "description": "Probability of `level`.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Probability",
+          "type": "number"
+        },
+        "review": {
+          "$ref": "#/$defs/Review"
+        },
+        "score": {
+          "description": "Expected level (0 = lowest).",
+          "minimum": 0.0,
+          "title": "Score",
+          "type": "number"
+        },
+        "type": {
+          "const": "score",
+          "default": "score",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "score",
+        "level",
+        "label",
+        "probability",
+        "confidence",
+        "probabilities",
+        "review"
+      ],
+      "title": "ScoreAnswer",
+      "type": "object"
+    },
+    "Status": {
+      "enum": [
+        "completed"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "WarningCode": {
+      "enum": [
+        "input_truncated",
+        "instructions_truncated",
+        "options_truncated",
+        "many_options",
+        "score_weak",
+        "low_confidence",
+        "uncalibrated_confidence",
+        "experimental_routing"
+      ],
+      "title": "WarningCode",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "answers": {
+      "patternProperties": {
+        "^[a-z][a-z0-9_]*$": {
+          "discriminator": {
+            "mapping": {
+              "choice": "#/$defs/ChoiceAnswer",
+              "noul": "#/$defs/NoulAnswer",
+              "score": "#/$defs/ScoreAnswer"
+            },
+            "propertyName": "type"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ChoiceAnswer"
+            },
+            {
+              "$ref": "#/$defs/ScoreAnswer"
+            },
+            {
+              "$ref": "#/$defs/NoulAnswer"
+            }
+          ]
+        }
+      },
+      "propertyNames": {
+        "maxLength": 64,
+        "minLength": 1
+      },
+      "title": "Answers",
+      "type": "object"
+    },
+    "contract_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Contract Version",
+      "type": "integer"
+    },
+    "model": {
+      "$ref": "#/$defs/ModelInfo"
+    },
+    "recipe_id": {
+      "maxLength": 64,
+      "minLength": 1,
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "title": "Recipe Id",
+      "type": "string"
+    },
+    "request_id": {
+      "title": "Request Id",
+      "type": "string"
+    },
+    "review": {
+      "$ref": "#/$defs/Review",
+      "description": "Derived from the review policy and warnings. Not a claim of correctness."
+    },
+    "status": {
+      "$ref": "#/$defs/Status",
+      "default": "completed"
+    },
+    "timing_ms": {
+      "minimum": 0.0,
+      "title": "Timing Ms",
+      "type": "number"
+    },
+    "warnings": {
+      "items": {
+        "$ref": "#/$defs/DecisionWarning"
+      },
+      "title": "Warnings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "request_id",
+    "recipe_id",
+    "review",
+    "model",
+    "answers",
+    "warnings",
+    "timing_ms"
+  ],
+  "title": "DecisionResult",
+  "type": "object"
+}

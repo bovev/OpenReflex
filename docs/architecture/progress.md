@@ -21,9 +21,9 @@ Tracks `LOCAL_DECISION_HUB_IMPLEMENTATION_PLAN.md` §17.
 | 0.2 Upstream compatibility | done (Linux) | Real-model probe run under Docker. Native Windows run is tracked in 0.3d. Checkpoint license is a release blocker. |
 | 0.3a Fake-engine Windows packaging | done | Onedir build + smoke locally and in CI. Smoke decision added with 2.1. See windows-packaging.md |
 | 0.3b Native PE/DLL signature inventory | done | `signatures.py`, and `build.py --release` fails on any unsigned/unverifiable PE file. The current payload is blocked by the unsigned launcher. |
-| 0.3c Complete release-payload signing | todo | Every shipped PE file, not only the installer/launcher |
-| 0.3d Clean-machine Application Control smoke test | todo | Release blocker. Can't be satisfied by WSL2/Linux or an unsigned dev build. |
-| 1.1 Domain models | todo | |
+| 0.3c Complete release-payload signing | blocked on owner | Needs a code-signing certificate (or Trusted Signing account). Every shipped PE file must be signed, not only the installer/launcher. |
+| 0.3d Clean-machine Application Control smoke test | blocked on owner | Needs a clean Windows 11 VM with Application Control enforced, and signed output from 0.3c. Release blocker. Can't be satisfied by WSL2/Linux or an unsigned dev build. |
+| 1.1 Domain models | done | JSON Schemas are in `contracts/`, and drift is checked by verify |
 | 1.2 Recipe storage | todo | |
 | 2.1 Fake engine + service contract | todo | |
 | 2.2 LayaAdapter | todo | |
