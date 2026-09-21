@@ -8,10 +8,15 @@ license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115,<1",
+    "mcp>=1.30,<2",
     "pydantic>=2.9,<3",
     "pyyaml>=6.0.2,<7",
     "uvicorn>=0.32,<1",
 ]
+
+[project.scripts]
+openreflex-service = "openreflex.cli:main"
+openreflex-mcp = "openreflex_mcp.cli:main"
 
 [project.optional-dependencies]
 # Real inference engine. Heavy (torch); never needed for ordinary tests.
@@ -34,7 +39,7 @@ requires = ["hatchling>=1.26"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["backend/src/openreflex"]
+packages = ["backend/src/openreflex", "mcp_bridge/src/openreflex_mcp"]
 
 [tool.black]
 line-length = 100
@@ -62,14 +67,14 @@ known-first-party = ["openreflex", "openreflex_mcp"]
 "laya".msg = "Only openreflex.laya_adapter may import laya."
 
 [tool.pytest.ini_options]
-testpaths = ["backend/tests", "release/tests"]
+testpaths = ["backend/tests", "mcp_bridge/tests", "release/tests"]
 addopts = "-ra --strict-markers --import-mode=importlib"
 markers = [
     "real_model: needs installed Laya and downloaded weights (run with --real-model)",
 ]
 
 [tool.coverage.run]
-source = ["openreflex"]
+source = ["openreflex", "openreflex_mcp"]
 branch = true
 
 [tool.coverage.report]

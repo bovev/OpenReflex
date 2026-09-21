@@ -12,6 +12,7 @@ Tracks `LOCAL_DECISION_HUB_IMPLEMENTATION_PLAN.md` §17.
 | Formatter (unspecified) | black | Owner decision |
 | Task 0.3 as one task | Split into 0.3a–0.3d (below) | Owner decision. Application Control blocks unsigned native DLLs such as torch |
 | `packaging/windows/` | `release/windows/` | The top-level `packaging/` dir shadowed PyPI `packaging` (transformers import failed under pytest) |
+| `mcp/` (`mcp/src`, `mcp/tests`) | `mcp_bridge/` (package `openreflex_mcp`) | A top-level `mcp/` dir shadowed the MCP SDK's `mcp` package under pytest's importlib mode (same failure as `packaging/`) |
 | Real-model tests on the dev machine | Run under Docker (Linux) | torch DLLs are blocked natively. Native Windows real-model support is still a release blocker. |
 
 ## Task status
@@ -31,7 +32,7 @@ Tracks `LOCAL_DECISION_HUB_IMPLEMENTATION_PLAN.md` §17.
 | 2.3 Model manager | done | Stdlib HTTPS source fetches only catalog files at the pinned revision. Resumable, and every file is verified (LFS sha256 or git blob SHA-1). OS file locks, damaged state, remove. Real hub checked for small files in Docker. |
 | 3.1 FastAPI service | done | All plan endpoints, plus recipe import/export, model verify, preferences, and clear history (needed by the UI). Security middleware covers Host, Origin, token, body limit, headers, and content-free logs. `?confirm=` guards deletes. |
 | 3.2 Lifecycle / single instance | done | OS-held instance lock, shared endpoint/token discovery, detached launcher, authenticated shutdown, stable-port reuse, and stale metadata recovery. Real-process tests cover second-instance refusal, clean stop, and crash restart. |
-| 4.1 MCP bridge | todo | |
+| 4.1 MCP bridge | done | Low-level MCP SDK (1.30) stdio server, six tools. Strict argument models: unknown fields are rejected, so `path`/`url` arguments fail with structured `invalid_input`. Lazy auto-start through the shared launcher, one retry after a restart or token change, content-free stderr logs, SDK debug logging suppressed. In-process tests use a real MCP client session against the API app. Real-process tests cover stdout cleanliness, auto-start, and two hosts sharing one service. The official MCP Inspector CLI listed and invoked every tool. The packaged `openreflex-mcp.exe` build belongs with 6.1. |
 | 4.2 Client config generation | todo | |
 | 5.1 Setup/status screens | todo | |
 | 5.2 Recipe/decision screens | todo | |

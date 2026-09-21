@@ -221,6 +221,8 @@ _SAFE_FIELDS: Final = (
     "revision",
     "state",
     "queue_depth",
+    "tool",
+    "exception",
 )
 
 

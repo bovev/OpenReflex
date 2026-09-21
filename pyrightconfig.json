@@ -2,6 +2,8 @@
   "include": [
     "backend/src",
     "backend/tests",
+    "mcp_bridge/src",
+    "mcp_bridge/tests",
     "scripts",
     "release"
   ],
@@ -24,6 +26,15 @@
       ]
     },
     {
+      "root": "mcp_bridge/tests",
+      "extraPaths": [
+        "backend/src",
+        "backend/tests",
+        "mcp_bridge/src"
+      ],
+      "reportPrivateUsage": false
+    },
+    {
       "root": "backend/tests",
       "extraPaths": [
         "backend/src"
@@ -32,6 +43,7 @@
     }
   ],
   "extraPaths": [
-    "backend/src"
+    "backend/src",
+    "mcp_bridge/src"
   ]
 }
