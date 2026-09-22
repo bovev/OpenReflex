@@ -3,13 +3,25 @@
  * screens, a token/connection state, and screen bodies.
  *
  * The Setup screen (readiness, explicitly consented model download,
- * progress, recovery, safe diagnostics) is implemented. The remaining
- * screen workflows (recipe editing, decision execution, connection setup,
- * settings mutations) arrive in later tasks.
+ * progress, recovery, safe diagnostics) and the Recipes screen (form-based
+ * recipe listing, creation, editing, duplication, validation, import,
+ * export, deletion) are implemented. The remaining screen workflows
+ * (decision execution, connection setup, settings mutations) arrive in
+ * later tasks.
+ *
+ * A screen can register a leave guard: while the guard is set, unsaved-edit
+ * protection is active. It covers every way out of the screen:
+ *   - clicking a navigation link asks the guard first and can be blocked;
+ *   - browser Back/Forward (a ``hashchange`` to another screen) is intercepted,
+ *     the hash is restored to the current screen, and the guard's
+ *     confirmation is shown, so the form survives;
+ *   - refresh and tab close fire ``beforeunload``, which prompts the browser.
+ * The form is preserved until the user confirms the discard.
  */
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError, request } from "./api";
+import { RecipesScreen, type LeaveGuard } from "./recipes";
 import { SetupScreen } from "./setup";
 import { getToken } from "./token";
 
@@ -59,9 +71,11 @@ function Recovery({ state }: { state: ConnectionState }) {
 function ScreenBody({
   screen,
   state,
+  setLeaveGuard,
 }: {
   screen: (typeof SCREENS)[number];
   state: ConnectionState;
+  setLeaveGuard: (guard: LeaveGuard | null) => void;
 }) {
   if (state.kind === "missing" || state.kind === "rejected") {
     return <Recovery state={state} />;
@@ -79,6 +93,9 @@ function ScreenBody({
   if (screen.id === "setup") {
     return <SetupScreen />;
   }
+  if (screen.id === "recipes") {
+    return <RecipesScreen setLeaveGuard={setLeaveGuard} />;
+  }
   return (
     <p data-testid="placeholder">
       {screen.name} is ready. Its workflow arrives in a later task.
@@ -91,12 +108,49 @@ export function App() {
   const [state, setState] = useState<ConnectionState>(() =>
     getToken() === null ? { kind: "missing" } : { kind: "checking" },
   );
-
+  const leaveGuard = useRef<LeaveGuard | null>(null);
+  const [guardActive, setGuardActive] = useState(false);
+  const screenRef = useRef(screen);
   useEffect(() => {
-    const onChange = () => setScreen(readScreen());
+    screenRef.current = screen;
+  }, [screen]);
+  const setLeaveGuard = useCallback((guard: LeaveGuard | null) => {
+    leaveGuard.current = guard;
+    setGuardActive(guard !== null);
+  }, []);
+
+  // A hash change to another screen (browser Back/Forward, or a direct hash
+  // edit) must not silently discard unsaved edits: while a guard is active it
+  // is asked first, and if it blocks, the hash is restored to the current
+  // screen so the app stays put and the guard's confirmation is shown.
+  useEffect(() => {
+    const onChange = () => {
+      const next = readScreen();
+      if (next !== screenRef.current && leaveGuard.current !== null) {
+        if (leaveGuard.current(next)) {
+          window.location.hash = `#/${screenRef.current}`;
+          return;
+        }
+      }
+      setScreen(next);
+    };
     window.addEventListener("hashchange", onChange);
     return () => window.removeEventListener("hashchange", onChange);
   }, []);
+
+  // Refresh and tab close must not silently discard unsaved edits either:
+  // while a guard is active, ``beforeunload`` prompts the browser.
+  useEffect(() => {
+    if (!guardActive) {
+      return;
+    }
+    const onBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [guardActive]);
 
   useEffect(() => {
     if (getToken() === null) {
@@ -132,6 +186,15 @@ export function App() {
                   href={`#/${s.id}`}
                   aria-current={s.id === screen ? "page" : undefined}
                   data-screen={s.id}
+                  onClick={(event) => {
+                    if (
+                      s.id !== screen &&
+                      leaveGuard.current !== null &&
+                      leaveGuard.current(s.id)
+                    ) {
+                      event.preventDefault();
+                    }
+                  }}
                 >
                   {s.name}
                 </a>
@@ -142,7 +205,7 @@ export function App() {
       </header>
       <main>
         <h1>{active.name}</h1>
-        <ScreenBody screen={active} state={state} />
+        <ScreenBody screen={active} state={state} setLeaveGuard={setLeaveGuard} />
       </main>
     </div>
   );

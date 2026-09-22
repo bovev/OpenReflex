@@ -1,8 +1,9 @@
 ---
 task: 4
-status: todo
+status: done
 depends_on: [3]
-rework_rounds: 0
+accepted_at: ada1562
+rework_rounds: 1
 ---
 
 # Build recipe management UI

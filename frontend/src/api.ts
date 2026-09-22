@@ -13,6 +13,9 @@
  * - Requests support cancellation through ``AbortSignal``.
  * - There is deliberately no retry logic: a failed mutation is reported to the
  *   caller exactly once and never repeated implicitly.
+ * - Query strings are only ever sent through :func:`requestWithQuery`, whose
+ *   parameters are limited to a strict character set before ``fetch`` is
+ *   called.
  */
 
 import { getToken } from "./token";
@@ -173,18 +176,38 @@ function invalidPathError(): ApiError {
   );
 }
 
-/**
- * Perform one request against the local service. The path must be a local
- * ``/v1`` API path (see :func:`assertLocalApiPath`); the service enforces
- * the token, Host, and Origin on its side.
- */
-export async function request<T>(
+export interface QueryParam {
+  readonly key: string;
+  readonly value: string;
+}
+
+// The service accepts a small, fixed set of query parameters (``confirm``).
+// Keys and values are limited to a strict character set, so the effective
+// target of the request can never be altered by encoding, whitespace, or
+// separator characters, and a query string can never smuggle a path.
+const QUERY_KEY_RE = /^[a-z][a-z0-9_]*$/;
+const QUERY_VALUE_RE = /^[a-z0-9][a-z0-9-]*$/;
+
+function assertQueryParams(params: readonly QueryParam[]): void {
+  for (const { key, value } of params) {
+    if (!QUERY_KEY_RE.test(key) || !QUERY_VALUE_RE.test(value)) {
+      throw invalidPathError();
+    }
+  }
+}
+
+function appendQuery(path: string, params: readonly QueryParam[]): string {
+  return params.length === 0
+    ? path
+    : `${path}?${params.map(({ key, value }) => `${key}=${value}`).join("&")}`;
+}
+
+async function sendRequest(
   method: string,
-  path: string,
-  body: unknown = undefined,
-  options: RequestOptions = {},
-): Promise<T> {
-  assertLocalApiPath(path);
+  url: string,
+  body: unknown,
+  options: RequestOptions,
+): Promise<Response> {
   const token = getToken();
   if (token === null) {
     throw new ApiError(0, "unauthorized", "no token is available for this tab", null, []);
@@ -192,9 +215,8 @@ export async function request<T>(
   if (options.signal?.aborted) {
     throw new CanceledError();
   }
-  let response: Response;
   try {
-    response = await fetch(path, {
+    return await fetch(url, {
       method,
       headers: {
         Authorization: `Bearer ${token}`,
@@ -209,7 +231,15 @@ export async function request<T>(
     }
     throw new ApiError(0, "network", "could not reach the local service", null, []);
   }
+}
 
+interface DecodedResponse {
+  readonly envelope: ErrorEnvelope | null;
+  readonly requestId: string | null;
+  readonly text: string;
+}
+
+async function decodeResponse(response: Response): Promise<DecodedResponse> {
   let envelope: ErrorEnvelope | null = null;
   const text = await response.text();
   if (text.length > 0) {
@@ -221,27 +251,98 @@ export async function request<T>(
   }
   const requestId =
     (envelope?.request_id ?? null) ?? response.headers.get("x-request-id");
+  return { envelope, requestId, text };
+}
 
+function rejectError(response: Response, decoded: DecodedResponse): void {
   if (!response.ok) {
     throw new ApiError(
       response.status,
-      envelope?.code ?? "network",
-      envelope?.message ?? `the service rejected the request (${response.status})`,
-      requestId,
-      envelope?.issues ?? [],
+      decoded.envelope?.code ?? "network",
+      decoded.envelope?.message ?? `the service rejected the request (${response.status})`,
+      decoded.requestId,
+      decoded.envelope?.issues ?? [],
     );
   }
+}
+
+/**
+ * Perform one request against the local service. The path must be a local
+ * ``/v1`` API path (see :func:`assertLocalApiPath`); the service enforces
+ * the token, Host, and Origin on its side.
+ */
+export async function request<T>(
+  method: string,
+  path: string,
+  body: unknown = undefined,
+  options: RequestOptions = {},
+): Promise<T> {
+  assertLocalApiPath(path);
+  const response = await sendRequest(method, path, body, options);
+  const decoded = await decodeResponse(response);
+  rejectError(response, decoded);
   if (response.status === 204) {
     return undefined as T;
   }
-  if (envelope === null) {
+  if (decoded.envelope === null) {
     throw new ApiError(
       response.status,
       "network",
       "the service returned an unreadable response",
-      requestId,
+      decoded.requestId,
       [],
     );
   }
-  return envelope as T;
+  return decoded.envelope as T;
+}
+
+/**
+ * Like :func:`request`, but with a strictly validated query string
+ * (see :func:`assertQueryParams`). The path itself is validated exactly as
+ * in :func:`request`, so a query can never change the path's target; the
+ * only accepted parameters today are the service's ``confirm`` guards.
+ */
+export async function requestWithQuery<T>(
+  method: string,
+  path: string,
+  params: readonly QueryParam[],
+  body: unknown = undefined,
+  options: RequestOptions = {},
+): Promise<T> {
+  assertLocalApiPath(path);
+  assertQueryParams(params);
+  const response = await sendRequest(method, appendQuery(path, params), body, options);
+  const decoded = await decodeResponse(response);
+  rejectError(response, decoded);
+  if (response.status === 204) {
+    return undefined as T;
+  }
+  if (decoded.envelope === null) {
+    throw new ApiError(
+      response.status,
+      "network",
+      "the service returned an unreadable response",
+      decoded.requestId,
+      [],
+    );
+  }
+  return decoded.envelope as T;
+}
+
+/**
+ * Perform one request whose successful response is plain text (the YAML
+ * export). The same path, token, and error handling as :func:`request`
+ * apply; on a non-2xx status the product error envelope is thrown, and the
+ * text body is only ever returned for a successful response.
+ */
+export async function requestText(
+  method: string,
+  path: string,
+  options: RequestOptions = {},
+): Promise<string> {
+  assertLocalApiPath(path);
+  const response = await sendRequest(method, path, undefined, options);
+  const decoded = await decodeResponse(response);
+  rejectError(response, decoded);
+  return decoded.text;
 }
