@@ -1,13 +1,16 @@
 /**
  * The compact app shell: keyboard-accessible navigation for the five V1
- * screens, a token/connection state, and placeholder screen bodies.
+ * screens, a token/connection state, and screen bodies.
  *
- * Screen-specific workflows (model download, recipe editing, decision
- * execution, connection setup, settings mutations) arrive in later tasks.
+ * The Setup screen (readiness, explicitly consented model download,
+ * progress, recovery, safe diagnostics) is implemented. The remaining
+ * screen workflows (recipe editing, decision execution, connection setup,
+ * settings mutations) arrive in later tasks.
  */
 
 import { useEffect, useState } from "react";
 import { ApiError, request } from "./api";
+import { SetupScreen } from "./setup";
 import { getToken } from "./token";
 
 export const SCREENS = [
@@ -72,6 +75,9 @@ function ScreenBody({
   }
   if (state.kind === "checking") {
     return <p data-testid="checking">Checking the local service&hellip;</p>;
+  }
+  if (screen.id === "setup") {
+    return <SetupScreen />;
   }
   return (
     <p data-testid="placeholder">

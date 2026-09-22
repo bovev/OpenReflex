@@ -1,9 +1,9 @@
 # Current task
 
-- Task: `task-02-frontend-foundation.md`
-- Round: 4
-- Baseline: `4404f3f31decdc499d2f633231d4eb7df3889b60`
+- Task: `task-03-setup-status-ui.md`
+- Round: 5
+- Baseline: `4c9c517bf11d3a60fc0cb82c89297d4ec896f1b4`
 - Stage: accepted
-- Blocking review finding: encoded or mixed-form dot segments can normalize outside `/v1` before fetch.
-- Blocking review finding: the frontend API client accepts external absolute or protocol-relative URLs and could forward the bearer token off-origin.
-- Replan: use pinned `@rollup/wasm-node` override so verification runs under Windows Application Control.
+- Blocking review finding: cleaned-up polling effects do not invalidate in-flight completions, allowing stale snapshots to overwrite a new download and stop observation.
+- Blocking review finding: overlapping asynchronous polls permit stale failures to leave the UI temporarily unreachable after polling has stopped.
+- Blocking findings: diagnostics retain stale offline readiness after polling; polling failures do not surface temporary service unreachability or recovery.

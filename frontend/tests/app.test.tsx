@@ -130,15 +130,44 @@ describe("app shell", () => {
     expect(document.body.textContent).not.toContain("tok-error-888");
   });
 
-  it("shows placeholder bodies once the service is reachable", async () => {
+  it("shows the Setup screen once the service is reachable, and placeholders for later screens", async () => {
     window.location.hash = "#token=tok-ready-777";
     bootstrapToken();
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(jsonResponse(200, { product: "OpenReflex" })),
+      vi.fn().mockResolvedValue(
+        jsonResponse(
+          200,
+          {
+            product: "OpenReflex",
+            version: "0.1.0",
+            contract_version: 1,
+            attribution:
+              "Powered by Laya, an open-source System 1 decision model developed by Convai Innovations.",
+            offline_ready: false,
+            default_profile: "typed-decisions",
+            engine: { engine: "fake", loaded_profile: null, loaded_checkpoint: null },
+            models: [],
+            queue_depth: 0,
+            queue_capacity: 16,
+            history: {
+              enabled: false,
+              what_is_stored: "decision inputs, outputs, and timestamps",
+            },
+            data_dir: "C:\\Users\\someone\\AppData\\Local\\OpenReflex",
+          },
+          { "x-request-id": "rid-7" },
+        ),
+      ),
     );
     render(<App />);
+    await vi.waitFor(() => expect(screen.getByTestId("setup")).toBeTruthy());
+    expect(screen.getByText(/Offline ready/i)).toBeTruthy();
+
+    // Later screens keep their placeholder bodies.
+    window.location.hash = "#/recipes";
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
     await vi.waitFor(() => expect(screen.getByTestId("placeholder")).toBeTruthy());
-    expect(screen.getByText(/Setup is ready/i)).toBeTruthy();
+    expect(screen.getByText(/Recipes is ready/i)).toBeTruthy();
   });
 });
