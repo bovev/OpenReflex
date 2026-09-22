@@ -1,0 +1,17 @@
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
+
+// The production build is served by the local service; the dev server, like
+// the service itself, never listens on a non-loopback interface.
+export default defineConfig({
+  plugins: [react()],
+  base: "/",
+  build: {
+    outDir: "dist",
+    emptyOutDir: true,
+  },
+  server: {
+    host: "127.0.0.1",
+    port: 5173,
+  },
+});

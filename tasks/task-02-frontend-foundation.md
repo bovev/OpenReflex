@@ -1,8 +1,9 @@
 ---
 task: 2
-status: blocked
+status: done
 depends_on: [1]
-rework_rounds: 1
+accepted_at: e24cf1f
+rework_rounds: 3
 replanned_at: ebf1874
 ---
 

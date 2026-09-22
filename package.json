@@ -2,6 +2,12 @@
   "name": "openreflex-workspace",
   "private": true,
   "license": "Apache-2.0",
+  "workspaces": [
+    "frontend"
+  ],
+  "overrides": {
+    "rollup": "npm:@rollup/wasm-node@4.63.4"
+  },
   "devDependencies": {
     "pyright": "1.1.414"
   }

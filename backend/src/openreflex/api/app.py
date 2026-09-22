@@ -403,6 +403,10 @@ def _mount_ui(app: FastAPI, ui_dir: Path) -> None:
     def root() -> FileResponse:  # pyright: ignore[reportUnusedFunction]
         return FileResponse(index, media_type="text/html")
 
+    @app.get("/index.html", include_in_schema=False)
+    def index_document() -> FileResponse:  # pyright: ignore[reportUnusedFunction]
+        return FileResponse(index, media_type="text/html")
+
 
 def secured(ctx: AppContext, app: Any) -> Callable[..., Any]:
     """Wrap the app in the security middleware (outermost layer)."""
