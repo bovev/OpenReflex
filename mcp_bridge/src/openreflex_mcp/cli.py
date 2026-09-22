@@ -14,6 +14,7 @@ import anyio
 from mcp.server.stdio import stdio_server
 
 from openreflex import __version__
+from openreflex.clients import SUPPORTED_CLIENTS, generate_json, resolve_mcp_executable
 from openreflex.identity import MCP_EXECUTABLE, PRODUCT_NAME
 from openreflex.paths import data_dir
 from openreflex.security.middleware import json_log_formatter
@@ -46,6 +47,23 @@ async def _serve(protocol_out: TextIO) -> None:
         await server.run(read_stream, write_stream, server.create_initialization_options())
 
 
+def _print_config(client: str) -> int:
+    """Non-server mode: print one valid JSON document and exit.
+
+    Stdout carries only the configuration, nothing else. The MCP stdio
+    protocol is never started, so the process never reads stdin.
+    """
+    executable = resolve_mcp_executable()
+    if not executable.is_file():
+        print(
+            f"installed {MCP_EXECUTABLE} executable not found at {executable}",
+            file=sys.stderr,
+        )
+        return 1
+    sys.stdout.write(generate_json(client, executable))
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog=MCP_EXECUTABLE,
@@ -53,7 +71,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         "Started by an MCP client, not by hand.",
     )
     parser.add_argument("--version", action="version", version=__version__)
-    parser.parse_args(argv)
+    parser.add_argument(
+        "--print-config",
+        metavar="CLIENT",
+        choices=SUPPORTED_CLIENTS,
+        help="print the MCP client configuration as JSON and exit; " "does not start the server",
+    )
+    args = parser.parse_args(argv)
+
+    if args.print_config is not None:
+        return _print_config(args.print_config)
 
     protocol_out = claim_stdout()
     configure_logging()

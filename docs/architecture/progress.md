@@ -14,6 +14,7 @@ Tracks `LOCAL_DECISION_HUB_IMPLEMENTATION_PLAN.md` §17.
 | `packaging/windows/` | `release/windows/` | The top-level `packaging/` dir shadowed PyPI `packaging` (transformers import failed under pytest) |
 | `mcp/` (`mcp/src`, `mcp/tests`) | `mcp_bridge/` (package `openreflex_mcp`) | A top-level `mcp/` dir shadowed the MCP SDK's `mcp` package under pytest's importlib mode (same failure as `packaging/`) |
 | Real-model tests on the dev machine | Run under Docker (Linux) | torch DLLs are blocked natively. Native Windows real-model support is still a release blocker. |
+| Task 4.2 clients: Claude Desktop + VS Code/GitHub Copilot | Claude Code, OpenCode, VS Code/GitHub Copilot; Claude Desktop is not required | Owner decision via task 4.2, 2026-09-21 |
 
 ## Task status
 

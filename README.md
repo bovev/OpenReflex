@@ -2,7 +2,7 @@
 
 Run a fast "System 1" decision model on your own computer and use it from the tools you already work in.
 
-OpenReflex is a Windows desktop app. It installs and runs a local decision model, lets you define reusable **decision recipes** (for example "which department should handle this email, and is it urgent?"), lets you try them in a small local web UI, and exposes them to MCP-capable AI tools such as Claude Desktop, Claude Code, and VS Code / GitHub Copilot.
+OpenReflex is a Windows desktop app. It installs and runs a local decision model, lets you define reusable **decision recipes** (for example "which department should handle this email, and is it urgent?"), lets you try them in a small local web UI, and exposes them to MCP-capable AI tools such as Claude Code, OpenCode, and VS Code / GitHub Copilot.
 
 > **Status:** early development. Nothing here is ready for production use yet.
 

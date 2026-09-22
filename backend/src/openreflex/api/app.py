@@ -18,6 +18,12 @@ from pydantic import BaseModel, ConfigDict, Field, JsonValue
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from openreflex import __version__
+from openreflex.clients import (
+    CONFIGURATION_POLICY,
+    PRIVACY_NOTE,
+    all_clients,
+    resolve_mcp_executable,
+)
 from openreflex.context import AppContext
 from openreflex.domain.decision import DecisionRequest, DecisionResult
 from openreflex.domain.engine import EngineStatus
@@ -104,6 +110,23 @@ class StatusReport(BaseModel):
 
 class HistoryPage(BaseModel):
     entries: list[HistoryEntry]
+
+
+class ClientConnection(BaseModel):
+    client: str
+    name: str
+    config: dict[str, JsonValue]
+    setup: list[str]
+    restart: list[str]
+    removal: list[str]
+    schema_source: str
+    schema_verified: str
+
+
+class ConnectionListing(BaseModel):
+    privacy_note: str
+    configuration_policy: str
+    clients: list[ClientConnection]
 
 
 def _request_id(request: Request) -> str | None:
@@ -296,6 +319,29 @@ def create_app(ctx: AppContext, *, ui_dir: Path | None = None) -> FastAPI:
         ctx.recipes.get(recipe_id)
         _confirm(recipe_id, confirm)
         ctx.recipes.delete(recipe_id)
+
+    # -- connections ----------------------------------------------------------
+
+    @app.get("/v1/connections")
+    def connections() -> ConnectionListing:  # pyright: ignore[reportUnusedFunction]
+        executable = resolve_mcp_executable()
+        return ConnectionListing(
+            privacy_note=PRIVACY_NOTE,
+            configuration_policy=CONFIGURATION_POLICY,
+            clients=[
+                ClientConnection(
+                    client=setup.client,
+                    name=setup.name,
+                    config=setup.config,
+                    setup=list(setup.setup),
+                    restart=list(setup.restart),
+                    removal=list(setup.removal),
+                    schema_source=setup.schema_source,
+                    schema_verified=setup.schema_verified,
+                )
+                for setup in all_clients(executable)
+            ],
+        )
 
     # -- decisions & history ------------------------------------------------------
 

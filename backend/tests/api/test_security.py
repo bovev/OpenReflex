@@ -23,7 +23,9 @@ def test_health_is_public(anon: TestClient) -> None:
     assert anon.get("/health/ready").json()["ready"] is False
 
 
-@pytest.mark.parametrize("path", ["/v1/status", "/v1/recipes", "/v1/models", "/v1/history"])
+@pytest.mark.parametrize(
+    "path", ["/v1/status", "/v1/recipes", "/v1/models", "/v1/history", "/v1/connections"]
+)
 def test_api_requires_token(anon: TestClient, path: str) -> None:
     response = anon.get(path)
     assert response.status_code == 401
