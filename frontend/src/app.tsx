@@ -3,11 +3,13 @@
  * screens, a token/connection state, and screen bodies.
  *
  * The Setup screen (readiness, explicitly consented model download,
- * progress, recovery, safe diagnostics) and the Recipes screen (form-based
+ * progress, recovery, safe diagnostics), the Recipes screen (form-based
  * recipe listing, creation, editing, duplication, validation, import,
- * export, deletion) are implemented. The remaining screen workflows
- * (decision execution, connection setup, settings mutations) arrive in
- * later tasks.
+ * export, deletion), and the Try-a-decision screen (bounded text or JSON
+ * input, one request per run, no implicit retry, complete primitive-specific
+ * results with review state separate from probability) are implemented.
+ * The remaining screen workflows (connection setup, settings mutations)
+ * arrive in later tasks.
  *
  * A screen can register a leave guard: while the guard is set, unsaved-edit
  * protection is active. It covers every way out of the screen:
@@ -21,6 +23,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError, request } from "./api";
+import { DecisionScreen } from "./decision";
 import { RecipesScreen, type LeaveGuard } from "./recipes";
 import { SetupScreen } from "./setup";
 import { getToken } from "./token";
@@ -92,6 +95,9 @@ function ScreenBody({
   }
   if (screen.id === "setup") {
     return <SetupScreen />;
+  }
+  if (screen.id === "try-a-decision") {
+    return <DecisionScreen />;
   }
   if (screen.id === "recipes") {
     return <RecipesScreen setLeaveGuard={setLeaveGuard} />;

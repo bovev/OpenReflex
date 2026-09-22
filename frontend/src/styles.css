@@ -327,6 +327,71 @@ button:focus-visible {
   color: inherit;
 }
 
+/* Decision screen. */
+
+.decision-section {
+  border: 1px solid #8884;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  margin: 0.75rem 0;
+  max-width: 48rem;
+}
+
+.decision-section h2 {
+  margin-top: 0;
+  font-size: 1rem;
+}
+
+.radio-row {
+  display: flex;
+  gap: 1.5rem;
+  margin: 0.25rem 0;
+}
+
+.answer-card {
+  border: 1px solid #8884;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  margin: 0.5rem 0;
+  max-width: 48rem;
+}
+
+.answer-card h3 {
+  margin: 0 0 0.25rem;
+}
+
+.answer-type {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #888c;
+}
+
+.distribution {
+  margin: 0.25rem 0;
+  padding-left: 1.25rem;
+}
+
+.warning-list,
+.failure-list {
+  margin: 0.25rem 0;
+  padding-left: 1.25rem;
+}
+
+/* The review block is separate from every probability block. Emphasis for
+   "needs review" is structural (a heavier border) and the text label is
+   always present, so nothing depends on color alone. */
+.review-banner {
+  border: 1px solid #8886;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  margin: 0.5rem 0;
+  max-width: 48rem;
+}
+
+.review-banner.needed {
+  border-width: 3px;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

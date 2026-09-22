@@ -1,6 +1,6 @@
 # Current task
 
-- Task: `task-04-recipe-management-ui.md`
+- Task: `task-05-decision-runner-ui.md`
 - Round: 2
-- Baseline: `2fd56d703b2ff4c548b8baa746ad54d4bdf36873`
+- Baseline: `1aa051a794b6ab3dfbf3f75575fbee4240338de4`
 - Stage: accepted
