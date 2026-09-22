@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import hashlib
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from pathlib import Path
 from typing import Any
 
@@ -65,8 +65,13 @@ def ctx(tmp_path: Path) -> AppContext:
     return make_context(tmp_path)
 
 
-def client_for(ctx: AppContext, *, auth: bool = True) -> TestClient:
-    app = secured(ctx, create_app(ctx))
+def client_for(
+    ctx: AppContext,
+    *,
+    auth: bool = True,
+    mcp_executable_resolver: Callable[[], Path] | None = None,
+) -> TestClient:
+    app = secured(ctx, create_app(ctx, mcp_executable_resolver=mcp_executable_resolver))
     headers = {"Authorization": f"Bearer {ctx.token}"} if auth else {}
     return TestClient(app, base_url=BASE, headers=headers)  # type: ignore[arg-type]
 

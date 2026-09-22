@@ -199,13 +199,38 @@ def all_clients(executable: Path) -> list[ClientSetup]:
     return [generate(client, executable) for client in SUPPORTED_CLIENTS]
 
 
-def resolve_mcp_executable() -> Path:
+def _mcp_name() -> str:
+    return f"{MCP_EXECUTABLE}.exe" if os.name == "nt" else MCP_EXECUTABLE
+
+
+def _frozen_mcp_executable() -> Path:
+    """The installed ``openreflex-mcp`` for this frozen process.
+
+    A frozen ``openreflex-mcp`` is itself. Any other frozen process — in
+    particular ``openreflex-service`` — lives next to the MCP executable in
+    the packaged two-executable layout, so the sibling is the answer.
+    """
+    exe = Path(sys.executable)
+    name = exe.name
+    if os.name == "nt" and name.lower().endswith(".exe"):
+        name = name[: -len(".exe")]
+    if name.lower() == MCP_EXECUTABLE:
+        return exe.resolve()
+    return exe.resolve().parent / _mcp_name()
+
+
+def resolve_mcp_executable(resolver: Callable[[], Path] | None = None) -> Path:
     """Absolute path of the installed ``openreflex-mcp`` executable.
 
-    A packaged (frozen) build is the executable itself; in development the
-    console script installed next to the current interpreter is used.
+    ``resolver`` is the injectable installed-path source: the packaged
+    layout (or a test) supplies the real path through it, and it wins over
+    every built-in rule. With no resolver: a frozen ``openreflex-mcp`` is
+    itself; a frozen ``openreflex-service`` finds it next to itself; in
+    development the console script installed next to the current
+    interpreter is used.
     """
+    if resolver is not None:
+        return Path(resolver()).resolve()
     if getattr(sys, "frozen", False):
-        return Path(sys.executable).resolve()
-    name = f"{MCP_EXECUTABLE}.exe" if os.name == "nt" else MCP_EXECUTABLE
-    return Path(sys.executable).resolve().parent / name
+        return _frozen_mcp_executable()
+    return Path(sys.executable).resolve().parent / _mcp_name()

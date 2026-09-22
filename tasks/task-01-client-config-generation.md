@@ -1,7 +1,8 @@
 ---
 task: 1
-status: in-progress
+status: done
 depends_on: []
+accepted_at: 465ce7f
 rework_rounds: 0
 ---
 

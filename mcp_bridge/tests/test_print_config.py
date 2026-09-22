@@ -57,9 +57,9 @@ def test_print_config_unknown_client_keeps_stdout_clean() -> None:
 
 
 def test_print_config_missing_executable_keeps_stdout_clean(tmp_path: Path) -> None:
-    # Point the resolver at a directory without the console script by faking
-    # the interpreter location through the frozen flag: sys.executable is the
-    # executable itself, so pick one that does not exist.
+    # Fake a frozen process whose sibling openreflex-mcp does not exist:
+    # the resolution falls back to the (missing) console script next to the
+    # executable, so the CLI reports it as not found.
     code = (
         "import sys\n"
         "from pathlib import Path\n"

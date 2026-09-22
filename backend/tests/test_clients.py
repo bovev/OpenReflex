@@ -160,13 +160,49 @@ def test_generator_never_touches_client_configuration_files(
     assert sentinel.read_text(encoding="utf-8") == '{"existing": true}'
 
 
-def test_resolve_mcp_executable_frozen_is_the_executable_itself(
+def _service_path(mcp: Path) -> Path:
+    name = "openreflex-service.exe" if os.name == "nt" else "openreflex-service"
+    return mcp.parent / name
+
+
+def test_resolve_mcp_executable_frozen_mcp_is_itself(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     packaged = _packaged_path()
     monkeypatch.setattr(sys, "frozen", True, raising=False)
     monkeypatch.setattr(sys, "executable", str(packaged))
     assert resolve_mcp_executable() == packaged
+
+
+@pytest.mark.parametrize("name", ["openreflex-service", "some-other-frozen-app"])
+def test_resolve_mcp_executable_frozen_service_is_the_sibling_mcp(
+    monkeypatch: pytest.MonkeyPatch, name: str
+) -> None:
+    # The service (or any other frozen process) is not the MCP executable:
+    # the answer is the sibling in the packaged two-executable layout,
+    # never the service executable itself.
+    mcp = _packaged_path()
+    exe = mcp.parent / name
+    if os.name == "nt" and not name.endswith(".exe"):
+        exe = mcp.parent / f"{name}.exe"
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(sys, "executable", str(exe))
+    assert resolve_mcp_executable() == mcp
+    assert resolve_mcp_executable() != exe
+
+
+def test_resolve_mcp_executable_uses_the_injected_resolver(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    target = tmp_path / "supplied" / "openreflex-mcp.exe"
+    # The resolver wins even when the process looks like a frozen service.
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(sys, "executable", str(_service_path(_packaged_path())))
+    assert resolve_mcp_executable(lambda: target) == target.resolve()
+    # ... and when it is a plain development interpreter.
+    monkeypatch.delattr(sys, "frozen", raising=False)
+    monkeypatch.setattr(sys, "executable", "/some/venv/bin/python")
+    assert resolve_mcp_executable(lambda: target) == target.resolve()
 
 
 def test_resolve_mcp_executable_development_uses_the_console_script(

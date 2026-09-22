@@ -152,7 +152,12 @@ def _confirm(expected: str, confirm: str | None) -> None:
         )
 
 
-def create_app(ctx: AppContext, *, ui_dir: Path | None = None) -> FastAPI:
+def create_app(
+    ctx: AppContext,
+    *,
+    ui_dir: Path | None = None,
+    mcp_executable_resolver: Callable[[], Path] | None = None,
+) -> FastAPI:
     docs = ctx.settings.openapi
     app = FastAPI(
         title=f"{PRODUCT_NAME} local API",
@@ -324,7 +329,7 @@ def create_app(ctx: AppContext, *, ui_dir: Path | None = None) -> FastAPI:
 
     @app.get("/v1/connections")
     def connections() -> ConnectionListing:  # pyright: ignore[reportUnusedFunction]
-        executable = resolve_mcp_executable()
+        executable = resolve_mcp_executable(mcp_executable_resolver)
         return ConnectionListing(
             privacy_note=PRIVACY_NOTE,
             configuration_policy=CONFIGURATION_POLICY,

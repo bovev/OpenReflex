@@ -14,6 +14,8 @@ from fastapi.testclient import TestClient
 from openreflex.clients import SUPPORTED_CLIENTS
 from openreflex.context import AppContext
 
+from .conftest import client_for
+
 
 def _packaged_path() -> Path:
     if os.name == "nt":
@@ -58,12 +60,10 @@ def _command_of(client: str, config: dict[str, Any]) -> Any:
     return config["servers"]["openreflex"]["command"]
 
 
-def test_connections_uses_the_injected_packaged_path(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_connections_uses_the_injected_packaged_path(ctx: AppContext) -> None:
     packaged = _packaged_path()
-    monkeypatch.setattr("openreflex.api.app.resolve_mcp_executable", lambda: packaged)
-    data = client.get("/v1/connections").json()
+    with client_for(ctx, mcp_executable_resolver=lambda: packaged) as client:
+        data = client.get("/v1/connections").json()
     for entry in data["clients"]:
         expected = str(packaged) if entry["client"] != "opencode" else [str(packaged)]
         assert _command_of(entry["client"], entry["config"]) == expected
@@ -72,6 +72,28 @@ def test_connections_uses_the_injected_packaged_path(
         assert ".venv" not in s
         assert str(Path.cwd()) not in s
         assert sys.executable not in s
+    ctx.close()
+
+
+def test_connections_frozen_service_resolves_the_sibling_mcp(
+    ctx: AppContext, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The real distinction: a frozen openreflex-service must report the
+    # sibling openreflex-mcp, not its own executable. No resolution
+    # function is monkeypatched; the default resolution runs.
+    mcp = _packaged_path()
+    service = mcp.parent / ("openreflex-service.exe" if os.name == "nt" else "openreflex-service")
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(sys, "executable", str(service))
+    with client_for(ctx) as client:
+        data = client.get("/v1/connections").json()
+    for entry in data["clients"]:
+        expected = str(mcp) if entry["client"] != "opencode" else [str(mcp)]
+        assert _command_of(entry["client"], entry["config"]) == expected
+    # The service executable itself is never the generated command.
+    for s in _strings(data):
+        assert str(service) not in s
+    ctx.close()
 
 
 def test_connections_never_exposes_token_or_client_config_paths(

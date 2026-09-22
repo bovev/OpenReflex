@@ -9,6 +9,16 @@ OpenReflex ships one executable, `openreflex-mcp`, which speaks MCP over stdio a
 
 Both use the same product-owned generator (`openreflex.clients`), so the output is identical for the same installed executable path. The generated JSON always uses the **absolute** path of the installed `openreflex-mcp` executable and invokes it **directly, without a shell**.
 
+## How the installed path is resolved
+
+Resolution is injectable: the API takes an optional installed-path resolver, and the packaged layout (or a test) can supply the real path through it. With no resolver supplied:
+
+- a frozen `openreflex-mcp` is itself;
+- a frozen `openreflex-service` (or any other frozen process) finds it **next to itself** in the packaged two-executable layout — the service executable is never reported as the MCP command;
+- in development the console script installed next to the current interpreter is used.
+
+The `--print-config` CLI always uses the built-in resolution, because it only ever runs as `openreflex-mcp` itself.
+
 ## Standing promises
 
 - **External clients are not offline.** Claude, Copilot, and OpenCode may process the content you send them remotely under their own terms. The model and your recipes stay on this computer; the client is only a front door.
