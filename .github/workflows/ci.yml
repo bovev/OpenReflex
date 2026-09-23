@@ -39,5 +39,11 @@ jobs:
         with:
           python-version: "3.12"
       - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
       - run: uv sync --frozen --group package
-      - run: uv run --frozen python release/windows/build.py --smoke
+      - run: npm ci
+      - run: npm exec --workspace frontend -- playwright install chromium
+      - run: python scripts/verify.py --package-windows

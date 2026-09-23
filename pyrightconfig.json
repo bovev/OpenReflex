@@ -22,6 +22,7 @@
       "root": "release",
       "extraPaths": [
         "backend/src",
+        "mcp_bridge/src",
         "release/windows"
       ]
     },

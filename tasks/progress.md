@@ -1,6 +1,6 @@
 # Current task
 
-- Task: `task-08-frontend-e2e-accessibility.md`
+- Task: `task-09-windows-release-payload.md`
 - Round: 1
-- Baseline: `867f34c1ec247b3da3c85d59424930352db73020`
-- Stage: accepted
+- Baseline: `bb7b53f`
+- Stage: awaiting Windows CI (local packaged smoke blocked by Application Control)

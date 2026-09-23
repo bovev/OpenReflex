@@ -53,7 +53,11 @@ class AlreadyRunning:
 
 
 def ui_dir() -> Path | None:
-    for candidate in (install_dir() / "ui", install_dir().parents[2] / "frontend" / "dist"):
+    """The built UI: ``<install>/ui`` when packaged, ``frontend/dist`` from source."""
+    candidates = [install_dir() / "ui"]
+    if not getattr(sys, "frozen", False):
+        candidates.append(install_dir().parents[2] / "frontend" / "dist")
+    for candidate in candidates:
         if (candidate / "index.html").is_file():
             return candidate
     return None
