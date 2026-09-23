@@ -1,6 +1,6 @@
 # Current task
 
-- Task: `task-07-settings-ui.md`
+- Task: `task-08-frontend-e2e-accessibility.md`
 - Round: 1
-- Baseline: `3b651c2029cfb774ac96b2a9b9ff65d07f8f3527`
+- Baseline: `867f34c1ec247b3da3c85d59424930352db73020`
 - Stage: accepted

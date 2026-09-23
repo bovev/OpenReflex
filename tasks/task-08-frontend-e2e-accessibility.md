@@ -1,6 +1,6 @@
 ---
 task: 8
-status: todo
+status: done
 depends_on: [3, 4, 5, 6, 7]
 rework_rounds: 0
 ---

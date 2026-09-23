@@ -72,6 +72,9 @@ def build_steps(args: argparse.Namespace) -> list[Step]:
         Step("frontend types", [npm, "run", "--workspace", "frontend", "typecheck"], frontend),
         Step("frontend tests", [npm, "run", "--workspace", "frontend", "test"], frontend),
         Step("frontend build", [npm, "run", "--workspace", "frontend", "build"], frontend),
+        # Real browser against the built assets and a loopback fake service.
+        # A missing browser binary fails this step; it is never skipped.
+        Step("frontend browser tests", [npm, "run", "--workspace", "frontend", "e2e"], frontend),
         Step(
             "contract drift",
             _uv("python", "scripts/check_contracts.py"),

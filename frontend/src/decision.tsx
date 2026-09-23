@@ -370,13 +370,18 @@ export function DecisionScreen() {
           fetched.
         </p>
         {analysis.issues.length > 0 && (
-          <ul className="issues" role="alert" data-testid="input-issues">
-            {analysis.issues.map((issue, i) => (
-              <li key={i}>
-                <code>{issue.location}</code> {issue.message}
-              </li>
-            ))}
-          </ul>
+          // ``role="alert"`` lives on the wrapper, not the ``<ul>``: putting it
+          // on the list would override the list role and orphan the ``<li>``
+          // items (an axe serious violation).
+          <div role="alert" data-testid="input-issues">
+            <ul className="issues">
+              {analysis.issues.map((issue, i) => (
+                <li key={i}>
+                  <code>{issue.location}</code> {issue.message}
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </section>
 

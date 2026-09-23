@@ -23,8 +23,9 @@
  * product-owned messages - never retried implicitly.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError, CanceledError, request, requestWithQuery } from "./api";
+import { useDialogFocus } from "./dialogFocus";
 import { NOTICES } from "./notices";
 import { DiagnosticsPanel, deriveOfflineReady, mergeModel, stateLabel } from "./setup";
 import { humanBytes, type ModelStatus, type Preferences, type StatusReport } from "./types";
@@ -456,8 +457,12 @@ function ConfirmDialog({
       : confirmation.kind === "enable-history"
         ? "Enable history"
         : "Clear history";
+  const ref = useRef<HTMLDivElement>(null);
+  useDialogFocus(ref);
   return (
     <div
+      ref={ref}
+      tabIndex={-1}
       className="dialog"
       role="alertdialog"
       aria-modal="true"

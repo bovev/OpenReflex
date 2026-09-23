@@ -40,3 +40,4 @@ Tracks `LOCAL_DECISION_HUB_IMPLEMENTATION_PLAN.md` §17.
 | 6.1 Windows installer | todo | |
 | 6.2 Security/privacy/license review | todo | |
 | 6.3 Non-developer usability test | todo | Needs a human participant |
+| Frontend E2E + accessibility (repo task 8) | done | Pinned Playwright (Chromium) + axe suite against a test-only fake service (`scripts/fake_service.py`: fake engine, in-memory artifact source, real auth middleware, temp data dir, no network). Covers token-fragment bootstrap, all five screens, download/recovery, recipe CRUD + import/export, all three decision primitives with review/warning states, connections, history settings, diagnostics, model removal, keyboard-only paths, dialog focus trap-in/restore, and a loopback-only request + CSP guard. Part of `verify.py` (fails, never skips, if the browser is missing); CI installs Chromium. |

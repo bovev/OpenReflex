@@ -27,6 +27,7 @@ jobs:
           cache: npm
       - run: uv sync --frozen
       - run: npm ci
+      - run: npm exec --workspace frontend -- playwright install --with-deps chromium
       - run: python scripts/verify.py
 
   package-windows:

@@ -25,6 +25,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ApiError } from "./api";
+import { useDialogFocus } from "./dialogFocus";
 import type { ScreenId } from "./app";
 import {
   createRecipe,
@@ -106,13 +107,18 @@ function IssueList({ issues, testId }: { issues: readonly (Issue | FormIssue)[];
     return null;
   }
   return (
-    <ul className="issues" role="alert" data-testid={testId}>
-      {issues.map((issue, i) => (
-        <li key={i}>
-          <code>{issue.location}</code> {issue.message}
-        </li>
-      ))}
-    </ul>
+    // ``role="alert"`` lives on the wrapper, not the ``<ul>``: putting it on the
+    // list would override the list role and orphan the ``<li>`` items (an axe
+    // serious violation). The wrapper announces; the list keeps its semantics.
+    <div role="alert" data-testid={testId}>
+      <ul className="issues">
+        {issues.map((issue, i) => (
+          <li key={i}>
+            <code>{issue.location}</code> {issue.message}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -125,8 +131,12 @@ function Dialog({
   testId: string;
   children: React.ReactNode;
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useDialogFocus(ref);
   return (
     <div
+      ref={ref}
+      tabIndex={-1}
       className="dialog"
       role="alertdialog"
       aria-modal="true"
@@ -162,6 +172,9 @@ export function RecipesScreen({
   const [pendingNav, setPendingNav] = useState<ScreenId | null>(null);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const lastImportText = useRef<string | null>(null);
+  // The ``data-testid`` of the control that opened the form; focus returns
+  // there when the form closes, once the list is interactive again.
+  const returnFocus = useRef<string | null>(null);
 
   const refresh = useCallback(async () => {
     setBusy("load");
@@ -210,6 +223,7 @@ export function RecipesScreen({
   }, []);
 
   const openCreate = useCallback(() => {
+    returnFocus.current = "new-recipe";
     setForm(newRecipeForm());
     setView({ mode: "create", baseId: null });
     setDirty(false);
@@ -228,6 +242,7 @@ export function RecipesScreen({
             loaded.id.length <= LIMITS.recipeId - "-copy".length ? `${loaded.id}-copy` : "";
         }
         setForm(loaded);
+        returnFocus.current = `${mode}-${id}`;
         setView({ mode, baseId: id });
         setDirty(false);
         clearFormState();
@@ -239,6 +254,16 @@ export function RecipesScreen({
     },
     [clearFormState],
   );
+
+  useEffect(() => {
+    if (view === null && busy === null && returnFocus.current !== null) {
+      const target = document.querySelector<HTMLElement>(
+        `[data-testid="${returnFocus.current}"]`,
+      );
+      returnFocus.current = null;
+      target?.focus();
+    }
+  }, [view, busy]);
 
   const mutate = useCallback(
     (updater: (current: RecipeForm) => RecipeForm) => {

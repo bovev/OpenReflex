@@ -187,6 +187,18 @@ export function App() {
     return () => controller.abort();
   }, []);
 
+  // On a screen change (never the initial load), focus moves to the new
+  // screen's heading so keyboard and screen-reader users land on the page
+  // they opened instead of staying in the navigation.
+  const heading = useRef<HTMLHeadingElement>(null);
+  const shown = useRef(screen);
+  useEffect(() => {
+    if (shown.current !== screen) {
+      shown.current = screen;
+      heading.current?.focus();
+    }
+  }, [screen]);
+
   const active = SCREENS.find((s) => s.id === screen) ?? SCREENS[0];
 
   return (
@@ -219,7 +231,9 @@ export function App() {
         </nav>
       </header>
       <main>
-        <h1>{active.name}</h1>
+        <h1 ref={heading} tabIndex={-1}>
+          {active.name}
+        </h1>
         <ScreenBody screen={active} state={state} setLeaveGuard={setLeaveGuard} />
       </main>
     </div>

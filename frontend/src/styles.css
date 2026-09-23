@@ -191,7 +191,10 @@ button:disabled {
   cursor: default;
 }
 
-button:focus-visible {
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 2px;
 }
@@ -363,7 +366,6 @@ button:focus-visible {
 .answer-type {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #888c;
 }
 
 .distribution {
