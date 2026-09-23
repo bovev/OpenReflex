@@ -1,7 +1,8 @@
 ---
 task: 7
-status: todo
+status: done
 depends_on: [6]
+accepted_at: 84d773f
 rework_rounds: 0
 ---
 

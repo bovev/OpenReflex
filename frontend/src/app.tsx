@@ -7,11 +7,14 @@
  * recipe listing, creation, editing, duplication, validation, import,
  * export, deletion), the Try-a-decision screen (bounded text or JSON
  * input, one request per run, no implicit retry, complete primitive-specific
- * results with review state separate from probability), and the
+ * results with review state separate from probability), the
  * Connections screen (server-generated MCP configuration for Claude Code,
  * OpenCode, and VS Code/GitHub Copilot, copy-only, with setup,
- * verification, restart, and removal guidance) are implemented. The
- * Settings workflow arrives in a later task.
+ * verification, restart, and removal guidance), and the Settings screen
+ * (app and version information, the read-only data directory, bundled
+ * project and third-party notices, the confirmed history opt-in/opt-out
+ * and clear, confirmed local model removal with the exact-profile
+ * confirmation, and the shared safe diagnostics) are implemented.
  *
  * A screen can register a leave guard: while the guard is set, unsaved-edit
  * protection is active. It covers every way out of the screen:
@@ -28,6 +31,7 @@ import { ApiError, request } from "./api";
 import { ConnectionsScreen } from "./connections";
 import { DecisionScreen } from "./decision";
 import { RecipesScreen, type LeaveGuard } from "./recipes";
+import { SettingsScreen } from "./settings";
 import { SetupScreen } from "./setup";
 import { getToken } from "./token";
 
@@ -108,11 +112,10 @@ function ScreenBody({
   if (screen.id === "connections") {
     return <ConnectionsScreen />;
   }
-  return (
-    <p data-testid="placeholder">
-      {screen.name} is ready. Its workflow arrives in a later task.
-    </p>
-  );
+  if (screen.id === "settings") {
+    return <SettingsScreen />;
+  }
+  return null;
 }
 
 export function App() {

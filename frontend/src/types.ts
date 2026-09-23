@@ -43,6 +43,10 @@ export interface HistoryStatus {
   readonly what_is_stored: string;
 }
 
+export interface Preferences {
+  readonly history_enabled: boolean;
+}
+
 export interface StatusReport {
   readonly product: string;
   readonly version: string;

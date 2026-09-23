@@ -75,7 +75,7 @@ const PROFILE_INFO: Record<
   },
 };
 
-function mergeModel(models: readonly ModelStatus[], updated: ModelStatus): ModelStatus[] {
+export function mergeModel(models: readonly ModelStatus[], updated: ModelStatus): ModelStatus[] {
   const present = models.some((m) => m.profile === updated.profile);
   const next = models.map((m) => (m.profile === updated.profile ? updated : m));
   return present ? next : [...next, updated];
@@ -96,7 +96,7 @@ function isTerminalState(model: ModelStatus): boolean {
   );
 }
 
-function stateLabel(model: ModelStatus): string {
+export function stateLabel(model: ModelStatus): string {
   switch (model.state) {
     case "installed":
       return "Installed";
@@ -464,7 +464,10 @@ function missingCandidates(models: ModelStatus[]): string[] {
  * status report's own ``offline_ready`` flag is only as fresh as the
  * initial ``/v1/status`` read and is not used.
  */
-function deriveOfflineReady(defaultProfile: ModelProfile, models: ModelStatus[]): boolean {
+export function deriveOfflineReady(
+  defaultProfile: ModelProfile,
+  models: ModelStatus[],
+): boolean {
   if (defaultProfile === "auto") {
     return missingCandidates(models).length === 0;
   }
@@ -592,7 +595,7 @@ function ProfileCard({
   );
 }
 
-function DiagnosticsPanel({
+export function DiagnosticsPanel({
   report,
   offlineReady,
 }: {

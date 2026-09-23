@@ -1,6 +1,6 @@
 # Current task
 
-- Task: `task-06-connections-ui.md`
-- Round: 2
-- Baseline: `addb9f4f71904790d8f6e759fad98f1a1f03c115`
+- Task: `task-07-settings-ui.md`
+- Round: 1
+- Baseline: `3b651c2029cfb774ac96b2a9b9ff65d07f8f3527`
 - Stage: accepted

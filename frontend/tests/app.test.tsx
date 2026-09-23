@@ -130,35 +130,40 @@ describe("app shell", () => {
     expect(document.body.textContent).not.toContain("tok-error-888");
   });
 
-  it("shows the Setup screen once the service is reachable, and placeholders for later screens", async () => {
+  it("shows the Setup screen once the service is reachable, and the built screens", async () => {
     window.location.hash = "#token=tok-ready-777";
     bootstrapToken();
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(
-        jsonResponse(
-          200,
-          {
-            product: "OpenReflex",
-            version: "0.1.0",
-            contract_version: 1,
-            attribution:
-              "Powered by Laya, an open-source System 1 decision model developed by Convai Innovations.",
-            offline_ready: false,
-            default_profile: "typed-decisions",
-            engine: { engine: "fake", loaded_profile: null, loaded_checkpoint: null },
-            models: [],
-            queue_depth: 0,
-            queue_capacity: 16,
-            history: {
-              enabled: false,
-              what_is_stored: "decision inputs, outputs, and timestamps",
+      vi.fn((input: string) => {
+        if (input === "/v1/preferences") {
+          return Promise.resolve(jsonResponse(200, { history_enabled: false }));
+        }
+        return Promise.resolve(
+          jsonResponse(
+            200,
+            {
+              product: "OpenReflex",
+              version: "0.1.0",
+              contract_version: 1,
+              attribution:
+                "Powered by Laya, an open-source System 1 decision model developed by Convai Innovations.",
+              offline_ready: false,
+              default_profile: "typed-decisions",
+              engine: { engine: "fake", loaded_profile: null, loaded_checkpoint: null },
+              models: [],
+              queue_depth: 0,
+              queue_capacity: 16,
+              history: {
+                enabled: false,
+                what_is_stored: "decision inputs, outputs, and timestamps",
+              },
+              data_dir: "C:\\Users\\someone\\AppData\\Local\\OpenReflex",
             },
-            data_dir: "C:\\Users\\someone\\AppData\\Local\\OpenReflex",
-          },
-          { "x-request-id": "rid-7" },
-        ),
-      ),
+            { "x-request-id": "rid-7" },
+          ),
+        );
+      }),
     );
     render(<App />);
     await vi.waitFor(() => expect(screen.getByTestId("setup")).toBeTruthy());
@@ -170,6 +175,13 @@ describe("app shell", () => {
     window.location.hash = "#/recipes";
     window.dispatchEvent(new HashChangeEvent("hashchange"));
     await vi.waitFor(() => expect(screen.getByTestId("recipes")).toBeTruthy());
+    expect(screen.queryByTestId("placeholder")).toBeNull();
+
+    // The Settings screen is built (task 7): the body must be the Settings
+    // screen, not a placeholder.
+    window.location.hash = "#/settings";
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+    await vi.waitFor(() => expect(screen.getByTestId("settings")).toBeTruthy());
     expect(screen.queryByTestId("placeholder")).toBeNull();
   });
 
