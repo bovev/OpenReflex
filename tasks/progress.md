@@ -1,6 +1,6 @@
 # Current task
 
-- Task: `task-05-decision-runner-ui.md`
+- Task: `task-06-connections-ui.md`
 - Round: 2
-- Baseline: `1aa051a794b6ab3dfbf3f75575fbee4240338de4`
+- Baseline: `addb9f4f71904790d8f6e759fad98f1a1f03c115`
 - Stage: accepted

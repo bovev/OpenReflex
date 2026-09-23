@@ -42,9 +42,10 @@ Configuration location: user scope `~/.claude.json`, or project scope `.mcp.json
 }
 ```
 
-1. **Setup** — merge the JSON above into your Claude Code MCP configuration. Keep every existing entry; add only the `openreflex` server. Check the connection with `claude mcp get openreflex` (or `/mcp` inside a session).
+1. **Setup** — merge the JSON above into your Claude Code MCP configuration. Keep every existing entry; add only the `openreflex` server.
 2. **Restart** — restart Claude Code so it starts the MCP server.
-3. **Removal** — remove the `openreflex` entry you added (`claude mcp remove openreflex`), keep every other entry, and restart Claude Code.
+3. **Verification** — check the connection with `claude mcp get openreflex` (or `/mcp` inside a session).
+4. **Removal** — remove the `openreflex` entry you added (`claude mcp remove openreflex`), keep every other entry, and restart Claude Code.
 
 ## OpenCode
 
@@ -67,7 +68,8 @@ Configuration location: user scope `~/.config/opencode/opencode.json`, or the pr
 
 1. **Setup** — merge the JSON above into your OpenCode configuration. Keep every existing entry; add only the `openreflex` server. OpenCode's local servers use a `command` array; `type` must be `"local"`.
 2. **Restart** — restart your OpenCode session so it starts the MCP server.
-3. **Removal** — remove the `openreflex` entry you added from the same configuration file, keep every other entry, and restart the session.
+3. **Verification** — check the connection in your OpenCode session with the `/mcp` command, which lists the configured MCP servers and their status.
+4. **Removal** — remove the `openreflex` entry you added from the same configuration file, keep every other entry, and restart the session.
 
 ## VS Code / GitHub Copilot
 
@@ -90,7 +92,8 @@ Configuration location: VS Code workspace `.vscode/mcp.json` or the user profile
 
 1. **Setup** — merge the JSON above into your VS Code or Copilot MCP configuration. Keep every existing entry; add only the `openreflex` server.
 2. **Restart** — reload the VS Code window (or restart the Copilot session) so it starts the MCP server.
-3. **Removal** — remove the `openreflex` entry you added from the same configuration, keep every other entry, and reload the window.
+3. **Verification** — check the connection in the VS Code Chat view, where the `openreflex` server's status is shown (or in the Copilot chat panel for portable Copilot configuration).
+4. **Removal** — remove the `openreflex` entry you added from the same configuration, keep every other entry, and reload the window.
 
 ## Keeping the shapes current
 

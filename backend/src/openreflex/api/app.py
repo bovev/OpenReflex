@@ -117,6 +117,7 @@ class ClientConnection(BaseModel):
     name: str
     config: dict[str, JsonValue]
     setup: list[str]
+    verification: list[str]
     restart: list[str]
     removal: list[str]
     schema_source: str
@@ -339,6 +340,7 @@ def create_app(
                     name=setup.name,
                     config=setup.config,
                     setup=list(setup.setup),
+                    verification=list(setup.verification),
                     restart=list(setup.restart),
                     removal=list(setup.removal),
                     schema_source=setup.schema_source,

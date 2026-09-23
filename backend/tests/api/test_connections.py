@@ -37,7 +37,9 @@ def test_connections_shape(client: TestClient) -> None:
     assert "never" in body["configuration_policy"]
     assert [c["client"] for c in body["clients"]] == list(SUPPORTED_CLIENTS)
     for entry in body["clients"]:
-        assert entry["setup"] and entry["restart"] and entry["removal"]
+        # Every client gets a dedicated verification step, not just the
+        # ones whose merge step happens to mention a check.
+        assert entry["setup"] and entry["verification"] and entry["restart"] and entry["removal"]
         assert entry["schema_source"].startswith("https://")
         assert entry["schema_verified"]
         assert entry["config"]

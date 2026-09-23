@@ -5,11 +5,13 @@
  * The Setup screen (readiness, explicitly consented model download,
  * progress, recovery, safe diagnostics), the Recipes screen (form-based
  * recipe listing, creation, editing, duplication, validation, import,
- * export, deletion), and the Try-a-decision screen (bounded text or JSON
+ * export, deletion), the Try-a-decision screen (bounded text or JSON
  * input, one request per run, no implicit retry, complete primitive-specific
- * results with review state separate from probability) are implemented.
- * The remaining screen workflows (connection setup, settings mutations)
- * arrive in later tasks.
+ * results with review state separate from probability), and the
+ * Connections screen (server-generated MCP configuration for Claude Code,
+ * OpenCode, and VS Code/GitHub Copilot, copy-only, with setup,
+ * verification, restart, and removal guidance) are implemented. The
+ * Settings workflow arrives in a later task.
  *
  * A screen can register a leave guard: while the guard is set, unsaved-edit
  * protection is active. It covers every way out of the screen:
@@ -23,6 +25,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError, request } from "./api";
+import { ConnectionsScreen } from "./connections";
 import { DecisionScreen } from "./decision";
 import { RecipesScreen, type LeaveGuard } from "./recipes";
 import { SetupScreen } from "./setup";
@@ -101,6 +104,9 @@ function ScreenBody({
   }
   if (screen.id === "recipes") {
     return <RecipesScreen setLeaveGuard={setLeaveGuard} />;
+  }
+  if (screen.id === "connections") {
+    return <ConnectionsScreen />;
   }
   return (
     <p data-testid="placeholder">

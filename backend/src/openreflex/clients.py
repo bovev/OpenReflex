@@ -56,12 +56,18 @@ class UnknownClient(ValueError):
 
 @dataclass(frozen=True)
 class ClientSetup:
-    """One client's complete setup: the config to merge, the steps, the provenance."""
+    """One client's complete setup: the config to merge, the steps, the provenance.
+
+    ``verification`` is a dedicated, per-client step: every supported
+    client gets server-owned guidance for checking that the connection
+    works, separate from the merge (``setup``) and ``restart`` steps.
+    """
 
     client: str
     name: str
     config: dict[str, Any]
     setup: tuple[str, ...]
+    verification: tuple[str, ...]
     restart: tuple[str, ...]
     removal: tuple[str, ...]
     schema_source: str
@@ -86,6 +92,8 @@ def _claude_code(executable: Path) -> ClientSetup:
             "Merge the JSON below into your Claude Code MCP configuration "
             "(user scope: ~/.claude.json, or project scope: .mcp.json). "
             "Keep every existing entry; add only the 'openreflex' server.",
+        ),
+        verification=(
             "Check the connection with 'claude mcp get openreflex' (or /mcp " "inside a session).",
         ),
         restart=("Restart Claude Code so it starts the MCP server.",),
@@ -117,6 +125,10 @@ def _opencode(executable: Path) -> ClientSetup:
             "~/.config/opencode/opencode.json, or the project's opencode.json). "
             "Keep every existing entry; add only the 'openreflex' server.",
         ),
+        verification=(
+            "Check the connection in your OpenCode session with the /mcp "
+            "command, which lists the configured MCP servers and their status.",
+        ),
         restart=("Restart your OpenCode session so it starts the MCP server.",),
         removal=(
             "Remove the 'openreflex' entry you added from the same configuration "
@@ -146,6 +158,11 @@ def _vscode_copilot(executable: Path) -> ClientSetup:
             ".vscode/mcp.json or the user profile mcp.json) or your Copilot "
             "configuration (workspace .mcp.json or ~/.copilot/mcp-config.json). "
             "Keep every existing entry; add only the 'openreflex' server.",
+        ),
+        verification=(
+            "Check the connection in the VS Code Chat view, where the "
+            "openreflex server's status is shown (or in the Copilot chat "
+            "panel for portable Copilot configuration).",
         ),
         restart=(
             "Reload the VS Code window (or restart the Copilot session) so it "
