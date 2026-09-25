@@ -244,10 +244,12 @@ def resolve_mcp_executable(resolver: Callable[[], Path] | None = None) -> Path:
     every built-in rule. With no resolver: a frozen ``openreflex-mcp`` is
     itself; a frozen ``openreflex-service`` finds it next to itself; in
     development the console script installed next to the current
-    interpreter is used.
+    interpreter is used. That interpreter path is made absolute but not
+    resolved: on Linux and macOS a venv's ``python`` is a symlink to the
+    base interpreter, and the console script sits next to the link.
     """
     if resolver is not None:
         return Path(resolver()).resolve()
     if getattr(sys, "frozen", False):
         return _frozen_mcp_executable()
-    return Path(sys.executable).resolve().parent / _mcp_name()
+    return Path(os.path.abspath(sys.executable)).parent / _mcp_name()

@@ -212,3 +212,23 @@ def test_resolve_mcp_executable_development_uses_the_console_script(
     monkeypatch.setattr(sys, "executable", "/some/venv/bin/python")
     name = "openreflex-mcp.exe" if os.name == "nt" else "openreflex-mcp"
     assert resolve_mcp_executable() == Path("/some/venv/bin").resolve() / name
+
+
+def test_resolve_mcp_executable_development_stays_in_the_venv_of_a_symlinked_python(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    # On Linux and macOS a venv's python is a symlink to the base interpreter;
+    # the console script lives next to the link, not next to its target.
+    base = tmp_path / "base" / "bin" / "python3"
+    base.parent.mkdir(parents=True)
+    base.write_text("", encoding="utf-8")
+    link = tmp_path / "venv" / "bin" / "python3"
+    link.parent.mkdir(parents=True)
+    try:
+        link.symlink_to(base)
+    except OSError:
+        pytest.skip("creating a symlink needs extra privileges on this platform")
+    monkeypatch.delattr(sys, "frozen", raising=False)
+    monkeypatch.setattr(sys, "executable", str(link))
+    name = "openreflex-mcp.exe" if os.name == "nt" else "openreflex-mcp"
+    assert resolve_mcp_executable() == link.parent / name

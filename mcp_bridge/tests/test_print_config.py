@@ -23,7 +23,7 @@ def _run(*argv: str) -> subprocess.CompletedProcess[str]:
     # stdin is closed: a process that claimed stdio for MCP would block on read.
     return subprocess.run(
         [sys.executable, "-m", "openreflex_mcp", *argv],
-        input=b"",
+        input="",
         capture_output=True,
         text=True,
         timeout=_TIMEOUT_S,
@@ -70,7 +70,7 @@ def test_print_config_missing_executable_keeps_stdout_clean(tmp_path: Path) -> N
     )
     out = subprocess.run(
         [sys.executable, "-c", code],
-        input=b"",
+        input="",
         capture_output=True,
         text=True,
         timeout=_TIMEOUT_S,
