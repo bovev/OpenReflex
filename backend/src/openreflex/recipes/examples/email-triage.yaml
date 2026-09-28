@@ -1,0 +1,30 @@
+schema_version: 1
+id: email-triage
+name: Email triage (example)
+description: >-
+  Demonstration recipe, not a production-validated policy. Routes incoming
+  messages to a department and estimates urgency.
+model_profile: typed-decisions
+questions:
+  department:
+    type: choice
+    instructions: Which department should handle this request?
+    criteria:
+      sales: Pricing, proposals, and new contracts
+      finance: Invoices, payments, and refunds
+      support: Product problems and technical help
+      other: Anything that does not fit the other categories
+  urgent:
+    type: noul
+    instructions: Does this require urgent human attention?
+  priority:
+    type: score
+    instructions: How important is this request?
+    criteria:
+      - low
+      - normal
+      - high
+      - critical
+review_policy:
+  default_min_confidence: 0.8
+  on_low_confidence: needs_review

@@ -1,0 +1,54 @@
+{
+  "request_id": "5b0f3f7e-3a55-4a4e-9a52-0f1d8f0c2b11",
+  "recipe_id": "email-triage",
+  "status": "completed",
+  "review": "needs_review",
+  "model": {
+    "profile": "typed-decisions",
+    "resolved_profile": "typed-decisions",
+    "checkpoint": "convaiinnovations/laya/typed-decisions",
+    "revision": "1c5edc17a7acd8701df6fc341c0d179f1c62c982",
+    "device": "cpu"
+  },
+  "answers": {
+    "department": {
+      "type": "choice",
+      "choice": "finance",
+      "probability": 0.7177,
+      "confidence": 0.3508,
+      "probabilities": {"sales": 0.1148, "finance": 0.7177, "support": 0.0966, "other": 0.071},
+      "review": "needs_review"
+    },
+    "urgent": {
+      "type": "noul",
+      "value": true,
+      "probability_true": 0.6555,
+      "confidence": 0.6555,
+      "review": "needs_review"
+    },
+    "priority": {
+      "type": "score",
+      "score": 2.2001,
+      "level": 2,
+      "label": "high",
+      "probability": 0.4465,
+      "confidence": 0.2007,
+      "probabilities": [0.0453, 0.1088, 0.4465, 0.3994],
+      "review": "needs_review"
+    }
+  },
+  "warnings": [
+    {
+      "code": "score_weak",
+      "message": "Ordinal score questions are currently less reliable than choice and true/false questions.",
+      "question_id": "priority"
+    },
+    {
+      "code": "low_confidence",
+      "message": "Confidence is below the recipe's review threshold.",
+      "question_id": "department"
+    }
+  ],
+  "timing_ms": 184.2,
+  "contract_version": 1
+}

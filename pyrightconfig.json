@@ -1,0 +1,50 @@
+{
+  "include": [
+    "backend/src",
+    "backend/tests",
+    "mcp_bridge/src",
+    "mcp_bridge/tests",
+    "scripts",
+    "release"
+  ],
+  "exclude": [
+    "scripts/laya_compat/probe.py",
+    "**/node_modules",
+    "**/.venv"
+  ],
+  "venvPath": ".",
+  "venv": ".venv",
+  "pythonVersion": "3.12",
+  "typeCheckingMode": "strict",
+  "reportMissingModuleSource": false,
+  "executionEnvironments": [
+    {
+      "root": "release",
+      "extraPaths": [
+        "backend/src",
+        "mcp_bridge/src",
+        "release/windows"
+      ]
+    },
+    {
+      "root": "mcp_bridge/tests",
+      "extraPaths": [
+        "backend/src",
+        "backend/tests",
+        "mcp_bridge/src"
+      ],
+      "reportPrivateUsage": false
+    },
+    {
+      "root": "backend/tests",
+      "extraPaths": [
+        "backend/src"
+      ],
+      "reportPrivateUsage": false
+    }
+  ],
+  "extraPaths": [
+    "backend/src",
+    "mcp_bridge/src"
+  ]
+}

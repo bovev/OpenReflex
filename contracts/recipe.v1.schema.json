@@ -1,0 +1,256 @@
+{
+  "$defs": {
+    "ChoiceQuestion": {
+      "additionalProperties": false,
+      "properties": {
+        "criteria": {
+          "description": "Stable machine keys mapped to clear descriptions, in display order.",
+          "patternProperties": {
+            "^[a-z0-9]+(?:[_-][a-z0-9]+)*$": {
+              "maxLength": 300,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1
+          },
+          "title": "Criteria",
+          "type": "object"
+        },
+        "instructions": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Instructions",
+          "type": "string"
+        },
+        "min_confidence": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Overrides the recipe's default review threshold.",
+          "title": "Min Confidence"
+        },
+        "type": {
+          "const": "choice",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "instructions",
+        "type",
+        "criteria"
+      ],
+      "title": "ChoiceQuestion",
+      "type": "object"
+    },
+    "LowConfidenceAction": {
+      "enum": [
+        "needs_review"
+      ],
+      "title": "LowConfidenceAction",
+      "type": "string"
+    },
+    "ModelProfile": {
+      "enum": [
+        "typed-decisions",
+        "english",
+        "multilingual",
+        "auto"
+      ],
+      "title": "ModelProfile",
+      "type": "string"
+    },
+    "NoulQuestion": {
+      "additionalProperties": false,
+      "description": "A probability-like true/false judgement. Takes no criteria.",
+      "properties": {
+        "instructions": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Instructions",
+          "type": "string"
+        },
+        "min_confidence": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Overrides the recipe's default review threshold.",
+          "title": "Min Confidence"
+        },
+        "type": {
+          "const": "noul",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "instructions",
+        "type"
+      ],
+      "title": "NoulQuestion",
+      "type": "object"
+    },
+    "ReviewPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "default_min_confidence": {
+          "default": 0.8,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Default Min Confidence",
+          "type": "number"
+        },
+        "on_low_confidence": {
+          "$ref": "#/$defs/LowConfidenceAction",
+          "default": "needs_review"
+        }
+      },
+      "title": "ReviewPolicy",
+      "type": "object"
+    },
+    "ScoreQuestion": {
+      "additionalProperties": false,
+      "properties": {
+        "criteria": {
+          "description": "Ordered levels, lowest first.",
+          "items": {
+            "maxLength": 300,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Criteria",
+          "type": "array"
+        },
+        "instructions": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Instructions",
+          "type": "string"
+        },
+        "min_confidence": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Overrides the recipe's default review threshold.",
+          "title": "Min Confidence"
+        },
+        "type": {
+          "const": "score",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "instructions",
+        "type",
+        "criteria"
+      ],
+      "title": "ScoreQuestion",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "description": {
+      "default": "",
+      "maxLength": 500,
+      "title": "Description",
+      "type": "string"
+    },
+    "id": {
+      "maxLength": 64,
+      "minLength": 1,
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "title": "Id",
+      "type": "string"
+    },
+    "model_profile": {
+      "$ref": "#/$defs/ModelProfile",
+      "default": "typed-decisions"
+    },
+    "name": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "questions": {
+      "patternProperties": {
+        "^[a-z][a-z0-9_]*$": {
+          "discriminator": {
+            "mapping": {
+              "choice": "#/$defs/ChoiceQuestion",
+              "noul": "#/$defs/NoulQuestion",
+              "score": "#/$defs/ScoreQuestion"
+            },
+            "propertyName": "type"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ChoiceQuestion"
+            },
+            {
+              "$ref": "#/$defs/ScoreQuestion"
+            },
+            {
+              "$ref": "#/$defs/NoulQuestion"
+            }
+          ]
+        }
+      },
+      "propertyNames": {
+        "maxLength": 64,
+        "minLength": 1
+      },
+      "title": "Questions",
+      "type": "object"
+    },
+    "review_policy": {
+      "$ref": "#/$defs/ReviewPolicy",
+      "default": {
+        "default_min_confidence": 0.8,
+        "on_low_confidence": "needs_review"
+      }
+    },
+    "schema_version": {
+      "description": "Must be 1.",
+      "title": "Schema Version",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "name",
+    "questions"
+  ],
+  "title": "Recipe",
+  "type": "object"
+}

@@ -1,0 +1,234 @@
+"""The product-owned client configuration generator.
+
+Domain-level: no FastAPI, no Laya. Covers every output shape, path
+escaping, deterministic output, and the promise that the generator never
+touches a client's configuration file.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import sys
+from pathlib import Path
+from typing import Any, cast
+
+import pytest
+
+from openreflex.clients import (
+    SUPPORTED_CLIENTS,
+    UnknownClient,
+    all_clients,
+    generate,
+    generate_config,
+    generate_json,
+    resolve_mcp_executable,
+)
+
+SIMPLE = Path("/opt/OpenReflex/openreflex-mcp")
+TRICKY = Path('/Program Files/OpenReflex "beta"/配置/openreflex-mcp.exe')
+
+
+def _packaged_path() -> Path:
+    if os.name == "nt":
+        return Path("C:/Program Files/OpenReflex/openreflex-mcp.exe")
+    return Path("/opt/OpenReflex/openreflex-mcp")
+
+
+def _command_of(client: str, data: dict[str, Any]) -> Any:
+    if client == "claude-code":
+        return data["mcpServers"]["openreflex"]["command"]
+    if client == "opencode":
+        return data["mcp"]["openreflex"]["command"]
+    return data["servers"]["openreflex"]["command"]
+
+
+def test_supported_clients_are_the_v1_set() -> None:
+    assert SUPPORTED_CLIENTS == ("claude-code", "opencode", "vscode-copilot")
+
+
+@pytest.mark.parametrize("client", ["claude-desktop", "Claude Code", "vscode", ""])
+def test_unknown_client_is_rejected(client: str) -> None:
+    with pytest.raises(UnknownClient):
+        generate_config(client, SIMPLE)
+    with pytest.raises(UnknownClient):
+        generate(client, SIMPLE)
+
+
+@pytest.mark.parametrize("client", SUPPORTED_CLIENTS)
+def test_shape_is_the_documented_stdio_shape(client: str) -> None:
+    cfg = generate_config(client, SIMPLE)
+    if client == "claude-code":
+        assert cfg == {
+            "mcpServers": {"openreflex": {"command": str(SIMPLE), "args": [], "env": {}}}
+        }
+    elif client == "opencode":
+        # The schema declaration and a local command array, not a string.
+        assert cfg["$schema"] == "https://opencode.ai/config.json"
+        assert cfg["mcp"]["openreflex"] == {
+            "type": "local",
+            "command": [str(SIMPLE)],
+            "enabled": True,
+        }
+    else:
+        assert cfg == {
+            "servers": {
+                "openreflex": {
+                    "type": "stdio",
+                    "command": str(SIMPLE),
+                    "args": [],
+                    "env": {},
+                }
+            }
+        }
+    # Every client invokes the executable directly; never through a shell.
+    command = _command_of(client, cfg)
+    assert command in (str(SIMPLE), [str(SIMPLE)])
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        SIMPLE,
+        Path("/Program Files/OpenReflex/openreflex-mcp.exe"),  # spaces
+        Path('/Program Files/OpenReflex "beta"/openreflex-mcp.exe'),  # quotes
+        Path("/opt/配置/OpenReflex/openreflex-mcp.exe"),  # non-ASCII
+        Path("C:\\Program Files\\OpenReflex\\openreflex-mcp.exe"),  # backslashes
+        Path('/a/b/c d/e "f"\\g/öpenréflex-mcp.exe'),  # all of the above
+    ],
+)
+def test_path_escaping_round_trips(path: Path) -> None:
+    for client in SUPPORTED_CLIENTS:
+        text = generate_json(client, path)
+        data = json.loads(text)  # valid JSON even for tricky paths
+        expected = str(path) if client != "opencode" else [str(path)]
+        assert _command_of(client, data) == expected
+
+
+def test_json_text_escapes_backslashes_and_quotes() -> None:
+    text = generate_json("claude-code", Path('C:\\Program Files\\"beta"/openreflex-mcp.exe'))
+    assert '\\"' in text  # the quote is escaped
+    assert "\\\\" in text  # backslashes are escaped
+
+
+def test_output_is_deterministic() -> None:
+    for client in SUPPORTED_CLIENTS:
+        assert generate_json(client, TRICKY) == generate_json(client, TRICKY)
+        assert generate(client, TRICKY) == generate(client, TRICKY)
+        first = json.loads(generate_json(client, TRICKY))
+        second = json.loads(generate_json(client, TRICKY))
+        assert list(first) == list(second)  # stable key order
+    assert generate_json("opencode", TRICKY) != generate_json("claude-code", TRICKY)
+    assert all_clients(TRICKY) == [generate(c, TRICKY) for c in SUPPORTED_CLIENTS]
+
+
+def _strings(value: Any) -> list[str]:
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, (dict, list)):
+        children = cast("list[Any]", value.values() if isinstance(value, dict) else value)
+        return [s for v in children for s in _strings(v)]
+    return []
+
+
+def test_packaged_path_is_the_only_path_in_the_output() -> None:
+    packaged = _packaged_path()
+    for client in SUPPORTED_CLIENTS:
+        data = json.loads(generate_json(client, packaged))
+        expected = str(packaged) if client != "opencode" else [str(packaged)]
+        assert _command_of(client, data) == expected
+        for marker in (str(Path.cwd()), ".venv", "AppData", str(Path.home())):
+            for s in _strings(data):
+                assert marker not in s
+
+
+def test_generator_never_touches_client_configuration_files(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    home = tmp_path / "home"
+    home.mkdir()
+    sentinel = home / "claude.json"
+    sentinel.write_text('{"existing": true}', encoding="utf-8")
+    (home / "opencode.json").write_text('{"other": 1}', encoding="utf-8")
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setenv("USERPROFILE", str(home))
+    before = sorted(p.name for p in home.iterdir())
+    for client in SUPPORTED_CLIENTS:
+        generate_json(client, _packaged_path())
+    after = sorted(p.name for p in home.iterdir())
+    assert before == after
+    assert sentinel.read_text(encoding="utf-8") == '{"existing": true}'
+
+
+def _service_path(mcp: Path) -> Path:
+    name = "openreflex-service.exe" if os.name == "nt" else "openreflex-service"
+    return mcp.parent / name
+
+
+def test_resolve_mcp_executable_frozen_mcp_is_itself(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    packaged = _packaged_path()
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(sys, "executable", str(packaged))
+    assert resolve_mcp_executable() == packaged
+
+
+@pytest.mark.parametrize("name", ["openreflex-service", "some-other-frozen-app"])
+def test_resolve_mcp_executable_frozen_service_is_the_sibling_mcp(
+    monkeypatch: pytest.MonkeyPatch, name: str
+) -> None:
+    # The service (or any other frozen process) is not the MCP executable:
+    # the answer is the sibling in the packaged two-executable layout,
+    # never the service executable itself.
+    mcp = _packaged_path()
+    exe = mcp.parent / name
+    if os.name == "nt" and not name.endswith(".exe"):
+        exe = mcp.parent / f"{name}.exe"
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(sys, "executable", str(exe))
+    assert resolve_mcp_executable() == mcp
+    assert resolve_mcp_executable() != exe
+
+
+def test_resolve_mcp_executable_uses_the_injected_resolver(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    target = tmp_path / "supplied" / "openreflex-mcp.exe"
+    # The resolver wins even when the process looks like a frozen service.
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(sys, "executable", str(_service_path(_packaged_path())))
+    assert resolve_mcp_executable(lambda: target) == target.resolve()
+    # ... and when it is a plain development interpreter.
+    monkeypatch.delattr(sys, "frozen", raising=False)
+    monkeypatch.setattr(sys, "executable", "/some/venv/bin/python")
+    assert resolve_mcp_executable(lambda: target) == target.resolve()
+
+
+def test_resolve_mcp_executable_development_uses_the_console_script(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delattr(sys, "frozen", raising=False)
+    monkeypatch.setattr(sys, "executable", "/some/venv/bin/python")
+    name = "openreflex-mcp.exe" if os.name == "nt" else "openreflex-mcp"
+    assert resolve_mcp_executable() == Path("/some/venv/bin").resolve() / name
+
+
+def test_resolve_mcp_executable_development_stays_in_the_venv_of_a_symlinked_python(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    # On Linux and macOS a venv's python is a symlink to the base interpreter;
+    # the console script lives next to the link, not next to its target.
+    base = tmp_path / "base" / "bin" / "python3"
+    base.parent.mkdir(parents=True)
+    base.write_text("", encoding="utf-8")
+    link = tmp_path / "venv" / "bin" / "python3"
+    link.parent.mkdir(parents=True)
+    try:
+        link.symlink_to(base)
+    except OSError:
+        pytest.skip("creating a symlink needs extra privileges on this platform")
+    monkeypatch.delattr(sys, "frozen", raising=False)
+    monkeypatch.setattr(sys, "executable", str(link))
+    name = "openreflex-mcp.exe" if os.name == "nt" else "openreflex-mcp"
+    assert resolve_mcp_executable() == link.parent / name

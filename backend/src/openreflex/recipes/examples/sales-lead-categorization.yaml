@@ -1,0 +1,29 @@
+schema_version: 1
+id: sales-lead-categorization
+name: Sales lead categorization (example)
+description: >-
+  Demonstration recipe, not a production-validated policy. Sorts inbound
+  leads by intent and estimates how ready they are to buy.
+model_profile: typed-decisions
+questions:
+  intent:
+    type: choice
+    instructions: What is the sender mainly asking for?
+    criteria:
+      pricing: Prices, quotes, or plan comparisons
+      demo: A product demonstration or trial
+      partnership: Reselling, integration, or partnership
+      not-a-lead: Job seekers, vendors, spam, or existing customers
+  decision_maker:
+    type: noul
+    instructions: Does the sender appear to be able to make or approve a purchase?
+  readiness:
+    type: score
+    instructions: How ready is this lead to buy?
+    criteria:
+      - just researching
+      - evaluating options
+      - ready to talk to sales
+review_policy:
+  default_min_confidence: 0.8
+  on_low_confidence: needs_review
